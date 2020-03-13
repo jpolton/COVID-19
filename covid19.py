@@ -339,7 +339,8 @@ def plot_frames_to_file(regions, days):
             single_frame_plot(daystr,region)
             files.append(ofile.replace('.gif','')+'_'+daystr+'.png')
 
-            plt.close('all')
+            if len(days)>10:
+                plt.close('all')
 
 
         # Make the animated gif and clean up the files
@@ -369,5 +370,8 @@ if __name__ == '__main__':
 
 
     # # Make regional plots for each day and each region
-    #plot_frames_to_file(regions,days)
-    plot_frames_to_file([region_NW],['12'])
+    #plot_frames_to_file(regions,days) # All regions and all days
+    #plot_frames_to_file([region_NW],['13']) # A single region and day
+    plot_frames_to_file(regions,[days[-1]]) # All regions, last day
+
+    plt.show()
