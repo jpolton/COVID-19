@@ -2,53 +2,53 @@
 # coding: utf-8
 
 # # Mapping in Python with geopandas
-# 
+#
 # Trying out geopandas to colour shapefile polygons by field values.
 # Here load a UK county council boundary shape file and a table of COVID-19 confirmed cases and plot.
-# 
+#
 # Data sources:
 # * shapefile: ``https://geoportal.statistics.gov.uk/datasets/local-authority-districts-december-2017-super-generalised-clipped-boundaries-in-great-britain/geoservice``
 # * public health england: ``https://www.gov.uk/government/publications/coronavirus-covid-19-number-of-cases-in-england/coronavirus-covid-19-number-of-cases-in-england``
-# 
-# Might also look at for following for tabulated, in time, data: 
+#
+# Might also look at for following for tabulated, in time, data:
 # * ``https://github.com/emmadoughty/Daily_COVID-19/blob/master/COVID19_by_LA.csv``
 # * ``https://docs.google.com/spreadsheets/d/129bJR5Mgcr5qOQNc96CBWKFfjODToWKRiVKDEg5ybkU/edit#gid=1952384968``
-# 
-# 
+#
+#
 # To get this to work I build a bespoke python environment:
-# 
-# 
+#
+#
 # `conda create -n geo_env
 # conda activate geo_env
 # conda config --env --add channels conda-forge
 # conda config --env --set channel_priority strict
 # conda install python=3 geopandas jupyter matplotlib numpy seaborn pysal pandas
 # `
-# 
+#
 # Then
 # ``conda activate geo_env``
-# 
+#
 #
 # Or, trying the following to get Spyder working
 # conda create --override-channels -c conda-forge -n covid19 python=3 geopandas jupyter matplotlib numpy seaborn pysal pandas spyder
 # conda activate covid19
-# conda install -c conda-forge descartes
+#
+# But this didn;t work for me :-(
 #
 # **author**: jpolton
-# 
+#
 # **data**: 11 March 2020
-# 
+#
 # **changelog**::
-# 
+#
 # 11 March: did it
 # 12 March: add subregions
+# 13 Mar: Broke ipython and spyder. Now just run as python script...
 
 # From: https://www.gov.uk/government/publications/covid-19-track-coronavirus-cases
-# 
+#
 # Now have UTLA cases table:
 # https://www.arcgis.com/home/item.html?id=b684319181f94875a6879bbc833ca3a6
-
-# In[1]:
 
 
 import matplotlib.pyplot as plt # plotting
@@ -58,212 +58,121 @@ import os # make animation using system call "convert"
 
 import numpy as np
 import geopandas as gpd
-#import pysal as ps
 import pandas as pd # read in CSV data
-
-
-# In[2]:
-
 
 #%matplotlib inline
 #get_ipython().run_line_magic('matplotlib', 'qt')
 
-
-# In[ ]:
-
-
-
-
-
-# In[3]:
-
-
-# Load spatial data
-
-
-# In[4]:
-
-root_dir = ''
-root_dir = '/Users/jeff/GitHub/COVID-19/'
-#root_dir = '/work/jelt/'
-
-dir = root_dir + 'DATA/COVID-19/'
-
-bdy_shp = root_dir + 'DATA/shapefile/Local_Authority_Districts_December_2017_Super_Generalised_Clipped_Boundaries_in_Great_Britain.shp'
-
-# In[5]:
-
-
-# Read the data
-bdy = gpd.read_file(bdy_shp)
-
-# Example usage to recover a region
-bdy.lad17nm[bdy.lad17nm == 'Wirral']
-# Set index to be the regional name
-bdy = bdy.set_index('lad17nm')
-
-
-# # load in CSV data
-# 
-# load in the field data with columns of place names and values. Set the place names to the be index so they can be easily added as a new column to the boundary shapefile
-# 
-# Expecting CSV data with columns: ``Upper Tier Local Authority`` and an integer date
-
-# In[11]:
-
-
-# My files
-#covid = pd.read_csv(dir+'Covid-19/Merged-Table.csv').set_index('GSS_NM')
-
-
-# In[12]:
-
-
-# Google docs: https://docs.google.com/spreadsheets/d/129bJR5Mgcr5qOQNc96CBWKFfjODToWKRiVKDEg5ybkU/edit#gid=1952384968
-#covid = pd.read_csv(dir+'Covid-19/COVID19-England - Summary.csv').set_index('Unnamed: 0')
-covid = pd.read_csv(root_dir + 'DATA/Covid-19/COVID19-England - Summary.csv').set_index('Unnamed: 0')
-
-# Have to trim unwanted fields at the bottom
-
-
-# In[13]:
-
-# Add the count to the boundary shapefile, as a new column
-
-start_date_str = '07'
-end_date_str = '12'
-
-start_date = int(start_date_str)
-end_date = int(end_date_str)
-
-for day in np.arange(start_date, end_date+1):
-    bdy[str(day).zfill(2)] = covid[str(day).zfill(2)+'/03']
-
-
-# # Make plot
-# Plot the data. First change the Coordinate Reference System to one that uses degrees, for plotting ease
-
-# In[15]:
-
-
-#imd = imd.to_crs("EPSG:3395") # metres
-bdy = bdy.to_crs("EPSG:4326") # degrees
-bdy.crs
-
-
-# ## make a suitable colorbar
-
-# In[16]:
-
-
-# Make a new colormap by adding white to the end of an exisiting colormap
-if(0): # colormap from tab10
-    tmp_cmap = cm.get_cmap('tab10')
-    colors_orig = tmp_cmap(np.linspace(0, 1, 10))
-
-    # swap some colors around
-    colors_orig[[0, 7],:] = colors_orig[[7, 0],:]
-    colors_orig[0,:] = [0.9 , 0.9, 1. , 1.]
-
-    white_pal = np.array([[1., 1., 1., 1.]]) # For zero values on the end of colormap
-    #grey_pal = np.array([[.8, .8, .8, 1.]])
-
-
-    #print(colors_orig)
-    #print(white_pal)
-
-
-    ## stack colors together
-    colors_new = np.vstack(( white_pal, colors_orig ))  # from tab10
-
-    # create new colormap
-    my_cmap = mcolors.ListedColormap( colors_new )
-
-
-# In[17]:
-
-
-# Make a new colormap by adding colours together
-blu_cmap=plt.cm.get_cmap('Blues', 6)
-red_cmap=plt.cm.get_cmap('Reds', 6)
-
-white_pal = np.array([[1., 1., 1., 1.]])
-#grey_pal = np.array([[.8, .8, .8, 1.]])
-
-## stack colors together
-# White, Blue and Red
-colors_new = np.vstack(( white_pal, blu_cmap(np.linspace(0.25, 1, 5)), red_cmap(np.linspace(0.25, 1, 5)) ))
-
-# create new colormap
-my_cmap = mcolors.ListedColormap( colors_new )
-
-
-# In[ ]:
-
-
-
-
-
-# # Three panel plot
-# 
-
-# In[17]:
-
+## FUNCTIONS
+############################################################################
 
 def plot_panel(ax,daystr):
+    """
+    Basic panel plotting as geopandas does not do subplot nicely. Might be good
+    for a N plus delta-N plot...
+
+    Example usage:
+        fig, (ax1, ax2, ax3) = plt.subplots(ncols=3, sharex=True, sharey=True)
+        plot_panel(ax1,'10')
+        plot_panel(ax2,'11')
+        plot_panel(ax3,'12')
+    """
     if ax==ax3:
         bool_val = True
     else:
         bool_val = False
-    bdy.boundary.plot( ax=ax, linewidth=0.5 )                    
-    bdy.plot(column=daystr, ax=ax, legend=bool_val, missing_kwds={'color': 'lightgray'},              vmin=0, vmax=11 ,cmap=my_cmap )
+    shp.boundary.plot( ax=ax, linewidth=0.5 )
+    shp.plot(column=daystr, ax=ax, legend=bool_val, missing_kwds={'color': 'lightgray'},
+                 vmin=0, vmax=11 ,cmap=make_colormap() )
     ax.set_xlim([-4,0])
     ax.set_ylim([52,55])
     ax.set_xlabel('longitude (deg)')
     ax.set_ylabel('latitude (deg)')
     ax.set_title(daystr + "March")
 
-fig, (ax1, ax2, ax3) = plt.subplots(ncols=3, sharex=True, sharey=True)
-
-plot_panel(ax1,'10')
-plot_panel(ax2,'11')
-plot_panel(ax3,'12')
+    return
 
 
-# # Large single frame plot
+def make_colormap():
+    """
+    make a suitable colorbar
+    white = 0, darkening blue then darkening red. 11 colors
 
-# In[18]:
+    Useage:
+    my_cmap = make_colormap()
+    """
+    # ##
+
+    # Make a new colormap by adding white to the end of an exisiting colormap
+    if(0): # colormap from tab10
+        tmp_cmap = cm.get_cmap('tab10')
+        colors_orig = tmp_cmap(np.linspace(0, 1, 10))
+
+        # swap some colors around
+        colors_orig[[0, 7],:] = colors_orig[[7, 0],:]
+        colors_orig[0,:] = [0.9 , 0.9, 1. , 1.]
+
+        white_pal = np.array([[1., 1., 1., 1.]]) # For zero values on the end of colormap
+        #grey_pal = np.array([[.8, .8, .8, 1.]])
+
+        #print(colors_orig)
+        #print(white_pal)
+
+        ## stack colors together
+        colors_new = np.vstack(( white_pal, colors_orig ))  # from tab10
+
+        # create new colormap
+        my_cmap = mcolors.ListedColormap( colors_new )
+
+    # Make a new colormap by adding colours together
+    blu_cmap=plt.cm.get_cmap('Blues', 6)
+    red_cmap=plt.cm.get_cmap('Reds', 6)
+
+    white_pal = np.array([[1., 1., 1., 1.]])
+    #grey_pal = np.array([[.8, .8, .8, 1.]])
+
+    ## stack colors together: White, Blue and Red
+    colors_new = np.vstack(( white_pal, blu_cmap(np.linspace(0.25, 1, 5)), red_cmap(np.linspace(0.25, 1, 5)) ))
+
+    # create new colormap
+    my_cmap = mcolors.ListedColormap( colors_new )
+
+    return my_cmap
 
 
-region = {'name': 'England', 'xlim':[-6,2], 'ylim':[50,56], 'date_loc':[0, 55.5] }
-#region = {'name': 'NW', 'xlim':[-3.4,-1.9], 'ylim':[52.8,53.9], 'date_loc':[-3.35, 53.8] }
-region = {'name': 'London',  'xlim':[-0.6,0.5], 'ylim':[51.2,51.8], 'date_loc':[0.2,51.75] }
+def single_frame_plot(daystr,region):
+    """
+    Draw and save a map frame for a given day and region.
+    Example usage:
+        region_Lon = {'name': 'London',  'xlim':[-0.6,0.5], 'ylim':[51.2,51.8], 'date_loc':[0.2,51.75] }
+        daystr = '13'
+        single_frame_plot(daystr,region)
+    --> FIGURES/COVID-19_London_13.png
+    """
 
-
-
-def single_frame_plot(daystr,region=region):
-    
     datestr = daystr + " March"
     titlestr = 'COVID-19 confirmed cases by local authority (England)'
     sourcestr = 'data source: www.gov.uk/government/publications/coronavirus-covid-19-number-of-cases-in-england'
 
     # Set the font dictionaries (for plot title and axis titles)
-    kw_source_label = {'fontname':'Arial', 'size':'6', 'color':'black', 'weight':'normal', 
+    kw_source_label = {'fontname':'Arial', 'size':'6', 'color':'black', 'weight':'normal',
                 'horizontalalignment': 'right', 'verticalalignment':'top'}
-    kw_date_label = {'fontname':'Arial', 'size':'16', 'color':'black', 'weight':'bold', 
+    kw_date_label = {'fontname':'Arial', 'size':'16', 'color':'black', 'weight':'bold',
                 'horizontalalignment': 'left', 'verticalalignment':'bottom'}
 
 
     fig, ax = plt.subplots(1, 1)
     plt.rcParams['figure.figsize'] = (10.0, 6.0)
 
-    bdy.boundary.plot( ax=ax, linewidth=0.25, color='k' ) # make boundaries grey when there are more reported areas                    
-    bdy.plot(column=daystr, ax=ax, legend=False, missing_kwds={'color': 'lightgray'},              vmin=0, vmax=11 ,cmap=my_cmap )
+    shp.boundary.plot( ax=ax, linewidth=0.25, color='k' ) # make boundaries grey when there are more reported areas
+    shp.plot(column=daystr, ax=ax, legend=False,
+                missing_kwds={'color': 'lightgray'},
+                  vmin=0, vmax=11 ,cmap=make_colormap() )
     # Edit and present colorbar
     axx=plt.gca()
     cb=plt.colorbar(axx.collections[1])
     cb.ax.set_ylabel('Number of confirmed cases')
-    
+
     ax.set_xlim(region['xlim'])
     ax.set_ylim(region['ylim'])
     #ax.set_xlim([-6,2])
@@ -281,33 +190,54 @@ def single_frame_plot(daystr,region=region):
 
     return
 
-daystr = '11'
-single_frame_plot(daystr)
-#plt.close('all')
+def edit_colourbar():
+    """
+    Manipulate the colorbar
+    Not used yet. Will probably implement as the colorbar is an issue
+    """
+    fig, ax = plt.subplots(1, 1)
+    plt.rcParams['figure.figsize'] = (10.0, 6.0)
+
+    shp.boundary.plot( ax=ax, linewidth=0.25, color='k' ) # make boundaries grey when there are more reported areas
+    shp.plot(column=daystr, ax=ax, legend=False, missing_kwds={'color': 'lightgray'},
+              vmin=0, vmax=11 ,cmap=make_colormap() )
+
+    axx=plt.gca()
+    plt.colorbar(axx.collections[1], )
 
 
-# In[19]:
+    cb=plt.colorbar(axx.collections[1])
+
+    cb.ax.set_ylabel('Number of confirmed cases')
 
 
-plt.close('all')
 
 
-# In[ ]:
+def widgets_thing():
+    """
+    Aim to use widgets to control view date. Not tested.
+    """
+    import ipywidgets as widgets
 
+    start_date_str = '07'
+    end_date_str = '11'
 
-# Or, using the function
+    start_date = int(start_date_str)
+    end_date = int(end_date_str)
 
+    # Vary the day with a slider
+    selection_date_slider = widgets.IntSlider(
+        min=start_date,max=end_date,value=end_date-start_date+1,
+        continuous_update=False,
+        description='date',
+        orientation='horizontal',
+        layout={'width': '600px'}
+    )
 
-# In[88]:
-
-
-fig, ax3 = plt.subplots(1, 1)
-plot_panel(ax3,'11') # If ax=ax3 it will plot a colorbar
-
-
-# # Make movie
-
-# In[29]:
+    widgets.interact(
+        single_frame_plot,
+        daystr=str(selection_date_slider)
+    );
 
 
 def make_gif(files,output,delay=100, repeat=True,**kwargs):
@@ -315,143 +245,106 @@ def make_gif(files,output,delay=100, repeat=True,**kwargs):
     Uses imageMagick to produce an animated .gif from a list of
     picture files.
     """
-
     os.system('convert -geometry 2048x2048 -delay %d -loop 0 %s %s'%(delay," ".join(files),output))
-    
-region = {'name': 'England', 'xlim':[-6,2], 'ylim':[50,56], 'date_loc':[0, 55.5] }
+    return
 
-files = []
-ofile = 'COVID-19_'+region['name']+'.gif'
-for daystr in  ['07', '08', '09', '10', '11', '12']:
-    
-    single_frame_plot(daystr, region)
-    files.append(ofile.replace('.gif','')+'_'+daystr+'.png')
 
 
-# Make the animated gif and clean up the files
-make_gif(files,ofile,delay=20)
+def load_shapefile():
+    """
+    load Local Authorities Upper Tier shape file data
+    Example usage of data:
+    shp.lad17nm[shp.lad17nm == 'Wirral']
+    """
+    # Load spatial data
+    root_dir = '/Users/jeff/GitHub/COVID-19/'
+    root_dir = ''
 
-#for f in files:
-#    os.remove(f)
+    shapefile = root_dir + 'DATA/shapefile/Local_Authority_Districts_December_2017_Super_Generalised_Clipped_Boundaries_in_Great_Britain.shp'
 
+    # Read the data
+    shp = gpd.read_file(shapefile)
 
-# In[ ]:
+    # Set index to be the regional name
+    shp = shp.set_index('lad17nm')
 
 
+    # Before plotting the data, first change the Coordinate Reference System to one that uses degrees, for plotting ease
+    #imd = imd.to_crs("EPSG:3395") # metres
+    shp = shp.to_crs("EPSG:4326") # degrees
+    #print(shp.crs)
 
+    return shp
 
 
-# In[ ]:
 
+def load_covid():
+    """
+    load in CSV data for confirmed cases per day and region
 
+    load in the field data with a column of place names and columns for values, each day.
+    Set the place names to the be index so they can be easily added as a new column to the boundary shapefile
+    """
+    # When I used the confirmed cases file that I managed:
+    #covid = pd.read_csv(dir+'Covid-19/Merged-Table.csv').set_index('GSS_NM')
 
+    # Source Google docs: https://docs.google.com/spreadsheets/d/129bJR5Mgcr5qOQNc96CBWKFfjODToWKRiVKDEg5ybkU/edit#gid=1952384968
+    # I export as CSV and manually trim unwanted fields at the bottom. I also don't use the first date column with non-integer values
+    # Region names header is empty --> "Unnamed: 0" to set this as the data index
+    covid = pd.read_csv('DATA/Covid-19/COVID19-England - Summary.csv').set_index('Unnamed: 0')
 
+    return covid
 
-# In[30]:
 
 
-plt.close('all')
+def plot_all_frames_to_file(regions):
+    for region in regions:
 
+        files = []
+        ofile = 'COVID-19_'+region['name']+'.gif'
+        for daystr in  ['07', '08', '09', '10', '11', '12', '13']:
 
-# # Make regional plot
+            single_frame_plot(daystr,region)
+            files.append(ofile.replace('.gif','')+'_'+daystr+'.png')
 
-# In[62]:
+            plt.close('all')
 
 
-region = {'name': 'England', 'xlim':[-6,2], 'ylim':[50,56], 'date_loc':[0, 55.5] }
-region = {'name': 'NW', 'xlim':[-3.4,-1.9], 'ylim':[52.8,53.9], 'date_loc':[-3.35, 53.8] }
-region = {'name': 'London',  'xlim':[-0.6,0.5], 'ylim':[51.2,51.8], 'date_loc':[0.2,51.75] }
+        # Make the animated gif and clean up the files
+        #make_gif(files,ofile,delay=20)
 
+        #for f in files:
+        #    os.remove(f)
 
-files = []
-ofile = 'COVID-19_'+region['name']+'.gif'
-for daystr in  ['07', '08', '09', '10', '11', '12']:
-    
-    single_frame_plot(daystr,region)
-    files.append('COVID-19_'+region['name']+'_'+daystr+'.png')
+    return
 
 
+# Load local authority boundary data
+shp = load_shapefile()
 
-# In[ ]:
+# Load covid-19 confirmed cases by day bby local authority data
+covid = load_covid()
 
 
 
-
-
-# In[31]:
-
-
-# Manipulate the colorbar
-fig, ax = plt.subplots(1, 1)
-plt.rcParams['figure.figsize'] = (10.0, 6.0)
-
-bdy.boundary.plot( ax=ax, linewidth=0.25, color='k' ) # make boundaries grey when there are more reported areas                    
-bdy.plot(column=daystr, ax=ax, legend=False, missing_kwds={'color': 'lightgray'},          vmin=0, vmax=11 ,cmap=my_cmap )
-
-
-axx=plt.gca()
-plt.colorbar(axx.collections[1], )
-
-
-
-# In[32]:
-
-
-cb=plt.colorbar(axx.collections[1])
-
-cb.ax.set_ylabel('Number of confirmed cases')
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# # Widgets
-
-# In[ ]:
-
-
-import ipywidgets as widgets
-
-
-# In[ ]:
-
-
+# Add the count to the boundary shapefile, as a new column
 start_date_str = '07'
-end_date_str = '11'
+end_date_str = '13'
 
 start_date = int(start_date_str)
 end_date = int(end_date_str)
 
-# Vary the day with a slider
-selection_date_slider = widgets.IntSlider(
-    min=start_date,max=end_date,value=end_date-start_date+1,
-    continuous_update=False,
-    description='date',
-    orientation='horizontal',
-    layout={'width': '600px'}
-)
+for day in np.arange(start_date, end_date+1):
+    shp[str(day).zfill(2)] = covid[str(day).zfill(2)+'/03']
 
 
-# In[ ]:
+# # Define Regions for plotting
+region_Eng = {'name': 'England', 'xlim':[-6,2], 'ylim':[50,56], 'date_loc':[0, 55.5] }
+region_NW = {'name': 'NW', 'xlim':[-3.4,-1.9], 'ylim':[52.8,53.9], 'date_loc':[-3.35, 53.8] }
+region_Lon = {'name': 'London',  'xlim':[-0.6,0.5], 'ylim':[51.2,51.8], 'date_loc':[0.2,51.75] }
+regions = [region_Eng, region_NW, region_Lon]
 
 
-widgets.interact(
-    single_frame_plot,
-    daystr=str(selection_date_slider)
-);
-
+# # Make regional plots for each day and each region
+#plot_all_frames_to_file(regions)
+plot_all_frames_to_file([region_NW])
