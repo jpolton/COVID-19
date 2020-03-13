@@ -1,3 +1,6 @@
 # Ignore image files
-*png
-*gif
+*.png
+*.gif
+*~
+*.pyc
+*.ipynb
