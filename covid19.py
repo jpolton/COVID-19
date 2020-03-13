@@ -164,8 +164,8 @@ def single_frame_plot(daystr,region):
     fig, ax = plt.subplots(1, 1)
     plt.rcParams['figure.figsize'] = (10.0, 6.0)
 
-    shp.boundary.plot( ax=ax, linewidth=0.25, color='k' ) # make boundaries grey when there are more reported areas
-    shp.plot(column=daystr, ax=ax, legend=False,
+    geodf.boundary.plot( ax=ax, linewidth=0.25, color='k' ) # make boundaries grey when there are more reported areas
+    geodf.plot(column=daystr, ax=ax, legend=False,
                 missing_kwds={'color': 'lightgray'},
                   vmin=0, vmax=11 ,cmap=make_colormap() )
     # Edit and present colorbar
@@ -186,6 +186,7 @@ def single_frame_plot(daystr,region):
     ax.axis('off')
     #fig.tight_layout()
     fname = 'FIGURES/COVID-19_'+region['name']+'_'+daystr+'.png'
+    print('Saving %s'%fname)
     plt.savefig(fname, dpi=1000)
 
     return
@@ -256,18 +257,15 @@ def load_shapefile():
     Example usage of data:
     shp.lad17nm[shp.lad17nm == 'Wirral']
     """
-    # Load spatial data
-    root_dir = '/Users/jeff/GitHub/COVID-19/'
-    root_dir = ''
-
-    shapefile = root_dir + 'DATA/shapefile/Local_Authority_Districts_December_2017_Super_Generalised_Clipped_Boundaries_in_Great_Britain.shp'
+    # Load shape file data
+    shapefile = 'DATA/shapefile/Local_Authority_Districts_December_2017_Super_Generalised_Clipped_Boundaries_in_Great_Britain.shp'
 
     # Read the data
+    print('Load shapefile data from %s'%shapefile)
     shp = gpd.read_file(shapefile)
 
     # Set index to be the regional name
     shp = shp.set_index('lad17nm')
-
 
     # Before plotting the data, first change the Coordinate Reference System to one that uses degrees, for plotting ease
     #imd = imd.to_crs("EPSG:3395") # metres
@@ -291,18 +289,52 @@ def load_covid():
     # Source Google docs: https://docs.google.com/spreadsheets/d/129bJR5Mgcr5qOQNc96CBWKFfjODToWKRiVKDEg5ybkU/edit#gid=1952384968
     # I export as CSV and manually trim unwanted fields at the bottom. I also don't use the first date column with non-integer values
     # Region names header is empty --> "Unnamed: 0" to set this as the data index
-    covid = pd.read_csv('DATA/Covid-19/COVID19-England - Summary.csv').set_index('Unnamed: 0')
+    fname = 'DATA/Covid-19/COVID19-England - Summary.csv'
+    print('Load COVID-19 data from %s'%fname)
+    covid = pd.read_csv(fname).set_index('Unnamed: 0')
 
     return covid
 
 
+def load_geodataframe(days):
+    """
+    1. Load local authority boundary data in geopanda dataframe
+    2. Load covid-19 confirmed cases by day bdy local authority data
+    3. Add the confirmed cases data as new columns (per day) to the geopandas
+    dataframe.
 
-def plot_all_frames_to_file(regions):
+    Useage:
+    days = ['07', '08', '09', '10', '11', '12', '13']
+    geodf = add_to_geodataframe(days)
+    """
+
+    # Load local authority boundary shapefile data in a geodataframe
+    geodf = load_shapefile()
+
+    # Load covid-19 confirmed cases by day bby local authority data
+    covid = load_covid()
+
+
+    # Add the count to the boundary shapefile, as a new column
+    print('Add COVID-19 data to geodataframe')
+    print('Assume the column headers are dates of the form 07/03')
+    for day in days:
+        geodf[day] = covid[day+'/03']
+
+    return geodf
+
+def plot_frames_to_file(regions, days):
+    """
+    days = ['07', '08', '09', '10', '11', '12', '13']
+    regions = [ {'name': 'NW', 'xlim':[-3.4,-1.9], 'ylim':[52.8,53.9], 'date_loc':[-3.35, 53.8] } ]
+    Useage:     plot_all_frames_to_file(regions,days)
+
+    """
     for region in regions:
 
         files = []
         ofile = 'COVID-19_'+region['name']+'.gif'
-        for daystr in  ['07', '08', '09', '10', '11', '12', '13']:
+        for daystr in  days:
 
             single_frame_plot(daystr,region)
             files.append(ofile.replace('.gif','')+'_'+daystr+'.png')
@@ -318,33 +350,24 @@ def plot_all_frames_to_file(regions):
 
     return
 
+##########################################################################################################################
+## Now do the main routine stuff
+if __name__ == '__main__':
 
-# Load local authority boundary data
-shp = load_shapefile()
+    # # Define Regions for plotting
+    region_Eng = {'name': 'England', 'xlim':[-6,2], 'ylim':[50,56], 'date_loc':[0, 55.5] }
+    region_NW = {'name': 'NW', 'xlim':[-3.4,-1.9], 'ylim':[52.8,53.9], 'date_loc':[-3.35, 53.8] }
+    region_Lon = {'name': 'London',  'xlim':[-0.6,0.5], 'ylim':[51.2,51.8], 'date_loc':[0.2,51.75] }
+    regions = [region_Eng, region_NW, region_Lon]
 
-# Load covid-19 confirmed cases by day bby local authority data
-covid = load_covid()
+    # Define the date range. Use 2-digit strings.
+    #  These will be the column labels for the case data
+    #  The COVID-19 source data has labels of the form 'dd/mm'
+    days = ['07', '08', '09', '10', '11', '12', '13']
 
-
-
-# Add the count to the boundary shapefile, as a new column
-start_date_str = '07'
-end_date_str = '13'
-
-start_date = int(start_date_str)
-end_date = int(end_date_str)
-
-for day in np.arange(start_date, end_date+1):
-    shp[str(day).zfill(2)] = covid[str(day).zfill(2)+'/03']
+    geodf = load_geodataframe(days)
 
 
-# # Define Regions for plotting
-region_Eng = {'name': 'England', 'xlim':[-6,2], 'ylim':[50,56], 'date_loc':[0, 55.5] }
-region_NW = {'name': 'NW', 'xlim':[-3.4,-1.9], 'ylim':[52.8,53.9], 'date_loc':[-3.35, 53.8] }
-region_Lon = {'name': 'London',  'xlim':[-0.6,0.5], 'ylim':[51.2,51.8], 'date_loc':[0.2,51.75] }
-regions = [region_Eng, region_NW, region_Lon]
-
-
-# # Make regional plots for each day and each region
-#plot_all_frames_to_file(regions)
-plot_all_frames_to_file([region_NW])
+    # # Make regional plots for each day and each region
+    #plot_frames_to_file(regions,days)
+    plot_frames_to_file([region_NW],['12'])
