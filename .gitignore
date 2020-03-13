@@ -1,3 +1,4 @@
 # Ignore image files
-*png
-*gif
+*.png
+*.gif
+*~
