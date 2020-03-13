@@ -187,7 +187,7 @@ def single_frame_plot(daystr,region):
     #fig.tight_layout()
     fname = 'FIGURES/COVID-19_'+region['name']+'_'+daystr+'.png'
     print('Saving %s'%fname)
-    plt.savefig(fname, dpi=1000)
+    plt.savefig(fname, dpi=200)
 
     return
 
@@ -339,9 +339,11 @@ def plot_frames_to_file(regions, days):
             single_frame_plot(daystr,region)
             files.append(ofile.replace('.gif','')+'_'+daystr+'.png')
 
-            if len(days)>10:
-                plt.close('all')
+        if len(days)>6:
+            plt.close('all')
 
+            print('My imageMagick is broken, so to make an animated gif copy and paste:')
+            print('convert -geometry 2048x2048 -loop 0 -delay 100 COVID-19_%s_??.png COVID-19_%s.gif'%(region['name'],region['name']))
 
         # Make the animated gif and clean up the files
         #make_gif(files,ofile,delay=20)
@@ -370,8 +372,7 @@ if __name__ == '__main__':
 
 
     # # Make regional plots for each day and each region
-    #plot_frames_to_file(regions,days) # All regions and all days
+    plot_frames_to_file(regions,days) # All regions and all days
     #plot_frames_to_file([region_NW],['13']) # A single region and day
-    plot_frames_to_file(regions,[days[-1]]) # All regions, last day
-
+    #plot_frames_to_file(regions,[days[-1]]) # All regions, last day
     plt.show()
