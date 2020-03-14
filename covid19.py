@@ -93,13 +93,16 @@ def plot_panel(ax,daystr):
     return
 
 
-def make_colormap():
+def make_colormap(type='lin', N=11):
     """
     make a suitable colorbar
-    white = 0, darkening blue then darkening red. 11 colors
+    If linear
+        white = 0, 5 darkening blue then 5 darkening red. Then set_over=black.
+        11 color blocks + one over block
+    If log
 
     Useage:
-    my_cmap = make_colormap()
+    my_cmap = make_colormap() # returns a linear colormap for 11 colours
     """
     # ##
 
@@ -124,35 +127,57 @@ def make_colormap():
         # create new colormap
         my_cmap = mcolors.ListedColormap( colors_new )
 
-    # Make a new colormap by adding colours together
-    blu_cmap=plt.cm.get_cmap('Blues', 6)
-    red_cmap=plt.cm.get_cmap('Reds', 6)
+    if type == 'lin':
+        # Make a new colormap by adding colours together
+        blu_cmap=plt.cm.get_cmap('Blues', 6)
+        red_cmap=plt.cm.get_cmap('Reds', 6)
 
-    white_pal = np.array([[1., 1., 1., 1.]])
-    #grey_pal = np.array([[.8, .8, .8, 1.]])
+        white_pal = np.array([[1., 1., 1., 1.]])
+        #grey_pal = np.array([[.8, .8, .8, 1.]])
 
-    ## stack colors together: White, Blue and Red
-    colors_new = np.vstack(( white_pal, blu_cmap(np.linspace(0.25, 1, 5)), red_cmap(np.linspace(0.25, 1, 5)) ))
+        ## stack colors together: White, Blue and Red
+        colors_new = np.vstack(( white_pal, blu_cmap(np.linspace(0.25, 1, 5)), red_cmap(np.linspace(0.25, 1, 5)) ))
 
-    # create new colormap
-    my_cmap = mcolors.ListedColormap( colors_new )
+        # create new colormap
+        my_cmap = mcolors.ListedColormap( colors_new )
+
+        my_cmap.set_over('black')
+        #my_cmap.set_under('white')
+    elif type == 'log':
+        # Make a new colormap by adding colours together
+        blu_cmap=plt.cm.get_cmap('Blues', (N+1) // 2 )
+        red_cmap=plt.cm.get_cmap('Reds',  (N+1) // 2 )
+
+        white_pal = np.array([[1., 1., 1., 1.]])
+        #grey_pal = np.array([[.8, .8, .8, 1.]])
+
+        ## stack colors together: Blue and Red
+        colors_new = np.vstack(( blu_cmap(np.linspace(0.25, 1, 5)), red_cmap(np.linspace(0.25, 1, 5)) ))
+
+        # create new colormap
+        my_cmap = mcolors.ListedColormap( colors_new )
+
+        my_cmap.set_over('black')
+        my_cmap.set_under('white')
 
     return my_cmap
 
 
-def single_frame_plot(daystr,region):
+def single_frame_plot(daystr,region,maxval=20.):
     """
     Draw and save a map frame for a given day and region.
     Example usage:
         region_Lon = {'name': 'London',  'xlim':[-0.6,0.5], 'ylim':[51.2,51.8], 'date_loc':[0.2,51.75] }
         daystr = '13'
-        single_frame_plot(daystr,region)
+        maxval = 10.
+        single_frame_plot(daystr,region_Lon,maxval)
     --> FIGURES/COVID-19_London_13.png
     """
 
     datestr = daystr + " March"
-    titlestr = 'COVID-19 confirmed cases by local authority (England)'
-    sourcestr = 'data source: www.gov.uk/government/publications/coronavirus-covid-19-number-of-cases-in-england'
+    titlestr = 'COVID-19 total confirmed cases by local authority (England)'
+    #sourcestr = 'data source: www.gov.uk/government/publications/coronavirus-covid-19-number-of-cases-in-england'
+    sourcestr = 'data source: www.gov.uk/government/publications/covid-19-track-coronavirus-cases'
 
     # Set the font dictionaries (for plot title and axis titles)
     kw_source_label = {'fontname':'Arial', 'size':'6', 'color':'black', 'weight':'normal',
@@ -160,18 +185,46 @@ def single_frame_plot(daystr,region):
     kw_date_label = {'fontname':'Arial', 'size':'16', 'color':'black', 'weight':'bold',
                 'horizontalalignment': 'left', 'verticalalignment':'bottom'}
 
+    # Make a colormap with ticks and labels for the given max value. Using a logscale
+    #my_colormap, my_ticks, my_ticklabels = make_colormap2(maxval)
+
+    colormap_type = 'lin' # 'log' WIP. 
+    N = 11 # Number of rectangular colorbar elements
 
     fig, ax = plt.subplots(1, 1)
     plt.rcParams['figure.figsize'] = (10.0, 6.0)
 
     geodf.boundary.plot( ax=ax, linewidth=0.25, color='k' ) # make boundaries grey when there are more reported areas
-    geodf.plot(column=daystr, ax=ax, legend=False,
+    if colormap_type == 'lin':
+        colorbar_extend_str = 'max'
+        geodf.plot(column=daystr, ax=ax, legend=False,
+                vmin=0, vmax=11,
                 missing_kwds={'color': 'lightgray'},
-                  vmin=0, vmax=11 ,cmap=make_colormap() )
+                cmap=make_colormap() )
+    elif colormap_type == 'log':
+        colorbar_extend_str = 'both'
+        geodf.plot(column=daystr, ax=ax, legend=False,
+                missing_kwds={'color': 'lightgray'},
+                cmap=make_colormap(type='log',N=11),
+                norm=mcolors.LogNorm(vmin=1, vmax=maxval) )
+
     # Edit and present colorbar
     axx=plt.gca()
-    cb=plt.colorbar(axx.collections[1])
-    cb.ax.set_ylabel('Number of confirmed cases')
+    if region['name'] == 'London':
+        cb=plt.colorbar(axx.collections[1], extend=colorbar_extend_str, orientation='horizontal')
+        cb.ax.set_xlabel('Number of confirmed cases')
+    else:
+        cb=plt.colorbar(axx.collections[1], extend=colorbar_extend_str, orientation='vertical')
+        cb.ax.set_ylabel('Number of confirmed cases')
+
+    if colormap_type == 'log':
+        # Find base such that int(base**(N-1) = maxval
+        base = np.e** (np.log(maxval) /(N))
+        ticks = [int(base**i) for i in range(N+3) ]
+        ticks = list(set(ticks))[0:N]
+
+        cb.set_ticks(ticks)
+        cb.set_ticklabels( [str(i) for i in ticks] )
 
     ax.set_xlim(region['xlim'])
     ax.set_ylim(region['ylim'])
@@ -187,7 +240,7 @@ def single_frame_plot(daystr,region):
     #fig.tight_layout()
     fname = 'FIGURES/COVID-19_'+region['name']+'_'+daystr+'.png'
     print('Saving %s'%fname)
-    plt.savefig(fname, dpi=200)
+    plt.savefig(fname, dpi=150)
 
     return
 
@@ -289,7 +342,8 @@ def load_covid():
     # Source Google docs: https://docs.google.com/spreadsheets/d/129bJR5Mgcr5qOQNc96CBWKFfjODToWKRiVKDEg5ybkU/edit#gid=1952384968
     # I export as CSV and manually trim unwanted fields at the bottom. I also don't use the first date column with non-integer values
     # Region names header is empty --> "Unnamed: 0" to set this as the data index
-    fname = 'DATA/Covid-19/COVID19-England - Summary.csv'
+    fname = 'DATA/Covid-19/COVID19-UK - Summary.csv'
+    #fname = 'DATA/Covid-19/COVID19-England - Summary.csv'
     print('Load COVID-19 data from %s'%fname)
     covid = pd.read_csv(fname).set_index('Unnamed: 0')
 
@@ -391,19 +445,20 @@ if __name__ == '__main__':
     # # Define Regions for plotting
     region_Eng = {'name': 'England', 'xlim':[-6,2], 'ylim':[50,56], 'date_loc':[0, 55.5] }
     region_NW = {'name': 'NW', 'xlim':[-3.4,-1.9], 'ylim':[52.8,53.9], 'date_loc':[-3.35, 53.8] }
-    region_Lon = {'name': 'London',  'xlim':[-0.6,0.5], 'ylim':[51.2,51.8], 'date_loc':[0.2,51.75] }
+    region_Lon = {'name': 'London',  'xlim':[-0.6,0.5], 'ylim':[51.3,51.7], 'date_loc':[0.25,51.65] }
     regions = [region_Eng, region_NW, region_Lon]
 
     # Define the date range. Use 2-digit strings.
     #  These will be the column labels for the case data
     #  The COVID-19 source data has labels of the form 'dd/mm'
-    days = ['07', '08', '09', '10', '11', '12', '13']
+    days = ['07', '08', '09', '10', '11', '12', '13', '14']
 
     geodf = load_geodataframe(days)
 
 
     # # Make regional plots for each day and each region
-    plot_frames_to_file(regions,days) # All regions and all days
-    #plot_frames_to_file([region_NW],['13']) # A single region and day
-    #plot_frames_to_file(regions,[days[-1]]) # All regions, last day
+    #plot_frames_to_file(regions,days) # All regions and all days
+    #plot_frames_to_file([region_NW],days) # A single region and all day
+    #plot_frames_to_file([region_Lon],['14']) # A single region and day
+    plot_frames_to_file(regions,[days[-1]]) # All regions, last day
     plt.show()
