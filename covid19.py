@@ -334,9 +334,13 @@ def plot_frames_to_file(regions, days):
 
         files = []
         ofile = 'COVID-19_'+region['name']+'.gif'
+
+        maxval = find_max_in_region(geodf,region,days) # Find the max value to construct the colorscale
+        print('Max val %d'%maxval)
+
         for daystr in  days:
 
-            single_frame_plot(daystr,region)
+            single_frame_plot(daystr,region,maxval)
             files.append(ofile.replace('.gif','')+'_'+daystr+'.png')
 
         if len(days)>6:
@@ -352,6 +356,33 @@ def plot_frames_to_file(regions, days):
         #    os.remove(f)
 
     return
+
+def find_max_in_region(geodf,region,days):
+    """
+    Find the largest cases value within a specified region and days list
+    days = ['07', '08', '09', '10', '11', '12', '13']
+    region_Lon = {'name': 'London',  'xlim':[-0.6,0.5], 'ylim':[51.2,51.8], 'date_loc':[0.2,51.75] }
+    maxval = find_max_in_region(geodf,region_Lon,days)
+    """
+    from shapely.geometry import Polygon # Find max in region
+
+    ymin,ymax = region['ylim']
+    xmin,xmax = region['xlim']
+    lat_point_list = [ymin, ymax, ymax, ymin, ymin]
+    lon_point_list = [xmin, xmin, xmax, xmax, xmin]
+
+    polygon_geom = Polygon(zip(lon_point_list, lat_point_list))
+    # Define the region's boundary as a geodataframe (Coodinate Reference System in DEGREES)
+    boundary_geodf = gpd.GeoDataFrame(index=[0], crs="EPSG:4326", geometry=[polygon_geom])
+
+    # Now find the small polygons within this boundary
+    region_mask = geodf.within(boundary_geodf.loc[0, 'geometry'])
+    region_geodf = geodf.loc[region_mask]
+
+    max_over_time_per_polygon = region_geodf[days].max(axis=1)
+
+    #print(boundary.geometry)
+    return max_over_time_per_polygon.max() # Max over time and region
 
 ##########################################################################################################################
 ## Now do the main routine stuff
