@@ -15,6 +15,8 @@
 # * ``https://docs.google.com/spreadsheets/d/129bJR5Mgcr5qOQNc96CBWKFfjODToWKRiVKDEg5ybkU/edit#gid=1952384968``
 #
 #
+# New shapefile: http://geoportal.statistics.gov.uk/datasets/6638c31a8e9842f98a037748f72258ed_0
+
 # To get this to work I build a bespoke python environment:
 #
 #
@@ -304,7 +306,7 @@ def make_gif(files,output,delay=100, repeat=True,**kwargs):
 
 
 
-def load_shapefile():
+def load_shapefile_old():
     """
     load Local Authorities Upper Tier shape file data
     Example usage of data:
@@ -312,7 +314,6 @@ def load_shapefile():
     """
     # Load shape file data
     shapefile = 'DATA/shapefile/Local_Authority_Districts_December_2017_Super_Generalised_Clipped_Boundaries_in_Great_Britain.shp'
-
     # Read the data
     print('Load shapefile data from %s'%shapefile)
     shp = gpd.read_file(shapefile)
@@ -327,6 +328,50 @@ def load_shapefile():
 
     return shp
 
+def load_shapefile():
+    """
+    load Local Authorities Upper Tier shape file data.
+    Do some merging and postprocessing to match COVID19 data as best as possible.
+    Example usage of data:
+    shp.lad19nm[shp.lad19nm == 'Wirral']
+    """
+    # Load shape file data
+    shapefile = 'DATA/shapefile3/Counties_and_Unitary_Authorities_December_2017_Full_Clipped_Boundaries_in_UK.shp'
+    # Read the data
+    print('Load shapefile data from %s'%shapefile)
+    shp = gpd.read_file(shapefile)
+    shp['merge'] = None
+
+    # A couple of regions need to be merged as the counts data is presented for joint regions.
+    # Join Bournemout and Poole polygons. Find the indices
+    iBCP = shp.index[ (shp['ctyua17nm'] == 'Bournemouth') | (shp['ctyua17nm'] == 'Poole')  ].tolist()
+    shp.loc[ iBCP, 'merge'] = 'BCP' # Christchurch is missing from the shapefile and is in the Dorset polygon.
+    # Join Cornwall and Scilly polygons. Find the indices
+    iCIoS = shp.index[ (shp['ctyua17nm'] == 'Isles of Scilly') | (shp['ctyua17nm'] == 'Cornwall')  ].tolist()
+    shp.loc[ iCIoS, 'merge'] = 'CIoS'
+    # Merge into a new geodf
+    shp2 = shp.dissolve(by='merge')
+    # Relable place names
+    shp2 = shp2.replace('Bournemouth','Bournemouth, Christchurch and Poole')
+    print('NB Christchurch region is folded into Dorset')
+    shp2 = shp2.replace('Cornwall', 'Cornwall and Isles of Scilly')
+    # Tidy up and concat
+    shp = shp.drop(iCIoS).drop(iBCP)
+    shp3 = gpd.GeoDataFrame(pd.concat([shp,shp2], ignore_index=True), crs=shp.crs)
+
+
+    # Set index to be the regional name
+    shp3 = shp3.set_index('ctyua17nm')
+
+    # Before plotting the data, first change the Coordinate Reference System to one that uses degrees, for plotting ease.
+    #  This is really slow
+    #imd = imd.to_crs("EPSG:3395") # metres
+    shp3 = shp3.to_crs("EPSG:4326") # degrees
+    #print(shp.crs)
+
+
+
+    return shp3
 
 
 def load_covid():
@@ -359,7 +404,8 @@ def load_geodataframe(days):
 
     Useage:
     days = ['07', '08', '09', '10', '11', '12', '13']
-    geodf = add_to_geodataframe(days)
+    geodf = load_geodataframe(days)
+    geodf.loc['Wirral']
     """
 
     # Load local authority boundary shapefile data in a geodataframe
@@ -377,11 +423,11 @@ def load_geodataframe(days):
 
     return geodf
 
-def plot_frames_to_file(regions, days):
+def plot_frames_to_file(geodf, regions, days):
     """
     days = ['07', '08', '09', '10', '11', '12', '13']
     regions = [ {'name': 'NW', 'xlim':[-3.4,-1.9], 'ylim':[52.8,53.9], 'date_loc':[-3.35, 53.8] } ]
-    Useage:     plot_all_frames_to_file(regions,days)
+    Useage:     plot_all_frames_to_file(geodf,regions,days)
 
     """
     for region in regions:
