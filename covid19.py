@@ -190,7 +190,7 @@ def single_frame_plot(daystr,region,maxval=20.):
     # Make a colormap with ticks and labels for the given max value. Using a logscale
     #my_colormap, my_ticks, my_ticklabels = make_colormap2(maxval)
 
-    colormap_type = 'lin' # 'log' WIP. 
+    colormap_type = 'log' # 'lin' # 'log' WIP.
     N = 11 # Number of rectangular colorbar elements
 
     fig, ax = plt.subplots(1, 1)
@@ -204,28 +204,39 @@ def single_frame_plot(daystr,region,maxval=20.):
                 missing_kwds={'color': 'lightgray'},
                 cmap=make_colormap() )
     elif colormap_type == 'log':
-        colorbar_extend_str = 'both'
+        colorbar_extend_str = 'min'
         geodf.plot(column=daystr, ax=ax, legend=False,
                 missing_kwds={'color': 'lightgray'},
                 cmap=make_colormap(type='log',N=11),
                 norm=mcolors.LogNorm(vmin=1, vmax=maxval) )
 
+
+
     # Edit and present colorbar
     axx=plt.gca()
-    if region['name'] == 'London':
-        cb=plt.colorbar(axx.collections[1], extend=colorbar_extend_str, orientation='horizontal')
-        cb.ax.set_xlabel('Number of confirmed cases')
-    else:
-        cb=plt.colorbar(axx.collections[1], extend=colorbar_extend_str, orientation='vertical')
-        cb.ax.set_ylabel('Number of confirmed cases')
+    #if region['name'] == 'London':
+    #    cb=plt.colorbar(axx.collections[1], extend=colorbar_extend_str, orientation='horizontal')
+    #    cb.ax.set_xlabel('Number of confirmed cases')
+    #else:
+    #    cb=plt.colorbar(axx.collections[1], extend=colorbar_extend_str, orientation='vertical')
+    #    cb.ax.set_ylabel('Number of confirmed cases')
 
     if colormap_type == 'log':
         # Find base such that int(base**(N-1) = maxval
         base = np.e** (np.log(maxval) /(N))
         ticks = [int(base**i) for i in range(N+3) ]
-        ticks = list(set(ticks))[0:N]
+        ticks = list(set(ticks))
+        ticks.sort()
+        ticks = ticks[0:N+1]
 
-        cb.set_ticks(ticks)
+        cb=plt.colorbar(axx.collections[1], #extend=colorbar_extend_str,
+                                #norm=mcolors.LogNorm(vmin=0, vmax=maxval),
+                                ticks=ticks,
+                                boundaries=ticks,
+                                spacing='proportional',
+                                orientation='vertical')
+
+        #cb.set_ticks(ticks)
         cb.set_ticklabels( [str(i) for i in ticks] )
 
     ax.set_xlim(region['xlim'])
@@ -497,14 +508,14 @@ if __name__ == '__main__':
     # Define the date range. Use 2-digit strings.
     #  These will be the column labels for the case data
     #  The COVID-19 source data has labels of the form 'dd/mm'
-    days = ['07', '08', '09', '10', '11', '12', '13', '14']
+    days = ['07', '08', '09', '10', '11', '12', '13', '14','15']
 
     geodf = load_geodataframe(days)
 
 
     # # Make regional plots for each day and each region
-    #plot_frames_to_file(regions,days) # All regions and all days
-    #plot_frames_to_file([region_NW],days) # A single region and all day
-    #plot_frames_to_file([region_Lon],['14']) # A single region and day
-    plot_frames_to_file(regions,[days[-1]]) # All regions, last day
+    #plot_frames_to_file(geodf,regions,days) # All regions and all days
+    #plot_frames_to_file(geodf,[region_NW],days) # A single region and all day
+    plot_frames_to_file(geodf,[region_Eng],['15']) # A single region and day
+    #plot_frames_to_file(geodf,regions,[days[-1]]) # All regions, last day
     plt.show()
