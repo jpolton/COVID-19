@@ -38,6 +38,7 @@ conda activate geo_env
 12 March: add subregions
 13 Mar: Broke ipython and spyder. Now just run as python script...
 14 Mar: implement log scaling onto discrete integer values
+16 Mar: generalise timestamp. Add Wales data.
 """
 
 
