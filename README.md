@@ -63,11 +63,4 @@ Might also look at the for following for tabulated, in time, data:
 
  **author**: jpolton
 
- **data**: 11 March 2020
-
- **changelog**::
-
- 11 March: did it
- 12 March: add subregions
- 13 Mar: Broke ipython and spyder. Now just run as python script...
- 14 Mar: implement log scaling onto discrete integer values
+ **date**: 11 March 2020

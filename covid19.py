@@ -6,51 +6,40 @@
 # Trying out geopandas to colour shapefile polygons by field values.
 # Here load a UK county council boundary shape file and a table of COVID-19 confirmed cases and plot.
 #
-# Data sources:
-# * shapefile: ``https://geoportal.statistics.gov.uk/datasets/local-authority-districts-december-2017-super-generalised-clipped-boundaries-in-great-britain/geoservice``
-# * public health england: ``https://www.gov.uk/government/publications/coronavirus-covid-19-number-of-cases-in-england/coronavirus-covid-19-number-of-cases-in-england``
-#
-# Might also look at for following for tabulated, in time, data:
-# * ``https://github.com/emmadoughty/Daily_COVID-19/blob/master/COVID19_by_LA.csv``
-# * ``https://docs.google.com/spreadsheets/d/129bJR5Mgcr5qOQNc96CBWKFfjODToWKRiVKDEg5ybkU/edit#gid=1952384968``
-#
-#
-# New shapefile: http://geoportal.statistics.gov.uk/datasets/6638c31a8e9842f98a037748f72258ed_0
+"""
 
-# To get this to work I build a bespoke python environment:
-#
-#
-# `conda create -n geo_env
-# conda activate geo_env
-# conda config --env --add channels conda-forge
-# conda config --env --set channel_priority strict
-# conda install python=3 geopandas jupyter matplotlib numpy seaborn pysal pandas
-# `
-#
-# Then
-# ``conda activate geo_env``
-#
-#
-# Or, trying the following to get Spyder working
-# conda create --override-channels -c conda-forge -n covid19 python=3 geopandas jupyter matplotlib numpy seaborn pysal pandas spyder
-# conda activate covid19
-#
-# But this didn;t work for me :-(
-#
-# **author**: jpolton
-#
-# **data**: 11 March 2020
-#
-# **changelog**::
-#
-# 11 March: did it
-# 12 March: add subregions
-# 13 Mar: Broke ipython and spyder. Now just run as python script...
+## Data sources
 
-# From: https://www.gov.uk/government/publications/covid-19-track-coronavirus-cases
-#
-# Now have UTLA cases table:
-# https://www.arcgis.com/home/item.html?id=b684319181f94875a6879bbc833ca3a6
+* shapefiles:
+- Local Authority Districts (December 2017) Super Generalised Clipped Boundaries in Great Britain ``https://geoportal.statistics.gov.uk/datasets/local-authority-districts-december-2017-super-generalised-clipped-boundaries-in-great-britain/geoservice`` (This effectively masks non-metropolitan regions in the PHE covid19 data, as they report over larger regions in the non-metropolitan places.)
+- Local Authority Districts (December 2019) Boundaries UK BUC at 500m ``https://geoportal.statistics.gov.uk/datasets/local-authority-districts-december-2019-boundaries-uk-buc?geometry=-3.947%2C53.302%2C-0.591%2C53.872`` (This matches the PHE reporting regions for all but a couple of the reporting regions).
+
+
+## Building a python environment
+
+To get this to work I build a bespoke python environment:
+
+conda create -n geo_env
+conda activate geo_env
+conda config --env --add channels conda-forge
+conda config --env --set channel_priority strict
+conda install python=3 geopandas jupyter matplotlib numpy seaborn pysal pandas
+
+Then
+conda activate geo_env
+
+
+**author**: jpolton
+**data**: 11 March 2020
+
+**changelog**::
+
+11 March: did it
+12 March: add subregions
+13 Mar: Broke ipython and spyder. Now just run as python script...
+14 Mar: implement log scaling onto discrete integer values
+"""
+
 
 
 import matplotlib.pyplot as plt # plotting
