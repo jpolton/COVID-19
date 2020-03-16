@@ -3,7 +3,7 @@
 The motivation was to learn how to do geospatial data handling and plotting in Python,
 here [geopandas](https://geopandas.org). COVID-19 confirmed cases by region seemed like a suitable dataset to learn on. But perhaps to many the image outputs are of more interest than the methods used...
 
-## Summary animations: Daily confirmed cases 7th-15th March
+## Summary animations: Daily confirmed cases March
 
 ![Daily confirmed cases 7th-15th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_England.gif)
 
