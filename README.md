@@ -11,6 +11,7 @@
  * ``https://github.com/emmadoughty/Daily_COVID-19/blob/master/COVID19_by_LA.csv``
  * ``https://docs.google.com/spreadsheets/d/129bJR5Mgcr5qOQNc96CBWKFfjODToWKRiVKDEg5ybkU/edit#gid=1952384968``
 
+New shapefile: https://geoportal.statistics.gov.uk/datasets/local-authority-districts-december-2019-boundaries-uk-buc?geometry=-3.947%2C53.302%2C-0.591%2C53.872 Local Authority Districts (December 2019) Boundaries UK BUC at 500m
 
  To get this to work I build a bespoke python environment:
 
@@ -46,3 +47,11 @@
 
  Now have UTLA cases table:
  https://www.arcgis.com/home/item.html?id=b684319181f94875a6879bbc833ca3a6
+
+
+ #### Summary animations: Daily confirmed cases 7th-15th March
+![Daily confirmed cases 7th-15th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_England.gif)
+
+![Daily confirmed cases 7th-15th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_NW.gif)
+
+![Daily confirmed cases 7th-15th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_London.gif)
