@@ -1,20 +1,47 @@
- # Mapping in Python with geopandas
+ # Track the UK spread of COVID-19: Mapping in Python with geopandas
 
- Trying out geopandas to colour shapefile polygons by field values.
- Here load a UK county council boundary shape file and a table of COVID-19 confirmed cases and plot.
+The motivation was to learn how to do geospatial data handling and plotting in Python,
+here [geopandas](https://geopandas.org). COVID-19 confirmed cases by region seemed like a suitable dataset to learn on. But perhaps to many the image outputs are of more interest than the methods used...
 
- Data sources:
- * shapefile: ``https://geoportal.statistics.gov.uk/datasets/local-authority-districts-december-2017-super-generalised-clipped-boundaries-in-great-britain/geoservice``
- * public health england: ``https://www.gov.uk/government/publications/coronavirus-covid-19-number-of-cases-in-england/coronavirus-covid-19-number-of-cases-in-england``
+## Summary animations: Daily confirmed cases 7th-15th March
 
- Might also look at for following for tabulated, in time, data:
- * ``https://github.com/emmadoughty/Daily_COVID-19/blob/master/COVID19_by_LA.csv``
- * ``https://docs.google.com/spreadsheets/d/129bJR5Mgcr5qOQNc96CBWKFfjODToWKRiVKDEg5ybkU/edit#gid=1952384968``
+![Daily confirmed cases 7th-15th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_England.gif)
 
-New shapefile: https://geoportal.statistics.gov.uk/datasets/local-authority-districts-december-2019-boundaries-uk-buc?geometry=-3.947%2C53.302%2C-0.591%2C53.872 Local Authority Districts (December 2019) Boundaries UK BUC at 500m
+![Daily confirmed cases 7th-15th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_NW.gif)
 
- To get this to work I build a bespoke python environment:
+![Daily confirmed cases 7th-15th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_London.gif)
 
+
+## Data sources
+
+* shapefiles:
+- Local Authority Districts (December 2017) Super Generalised Clipped Boundaries in Great Britain ``https://geoportal.statistics.gov.uk/datasets/local-authority-districts-december-2017-super-generalised-clipped-boundaries-in-great-britain/geoservice`` (This effectively masks non-metropolitan regions in the PHE covid19 data, as they report over larger regions in the non-metropolitan places.)
+- Local Authority Districts (December 2019) Boundaries UK BUC at 500m ``https://geoportal.statistics.gov.uk/datasets/local-authority-districts-december-2019-boundaries-uk-buc?geometry=-3.947%2C53.302%2C-0.591%2C53.872`` (This matches the PHE reporting regions for all but a couple of the reporting regions).
+
+
+* Public Health England: ``https://www.gov.uk/government/publications/covid-19-track-coronavirus-cases`` UTLA cases table.
+
+Might also look at the for following for tabulated, in time, data:
+* ``https://github.com/emmadoughty/Daily_COVID-19/blob/master/COVID19_by_LA.csv``
+* ``https://docs.google.com/spreadsheets/d/129bJR5Mgcr5qOQNc96CBWKFfjODToWKRiVKDEg5ybkU/edit#gid=1952384968``
+* ``https://github.com/tomwhite/covid-19-uk-data/``
+
+
+## Issues
+
+* Some of the regions may not be accurately drawn if local authority boundaries have moved I.e. shapefile slightly out of date.
+
+
+## Technical stuff
+
+ **Aim:** Try out geopandas to colour shapefile polygons by field values.
+ Here load a UK county council boundary shape file and tables of COVID-19 confirmed cases and plot.
+
+
+
+### Python environment
+
+ To get this code to work I build a bespoke python environment:
 
  `conda create -n geo_env
  conda activate geo_env
@@ -31,7 +58,8 @@ New shapefile: https://geoportal.statistics.gov.uk/datasets/local-authority-dist
  conda create --override-channels -c conda-forge -n covid19 python=3 geopandas jupyter matplotlib numpy seaborn pysal pandas spyder
  conda activate covid19
 
- But this didn;t work for me :-(
+ But this didn't work for me. I couldn't get Spyder to work with geopandas :-(
+
 
  **author**: jpolton
 
@@ -42,16 +70,4 @@ New shapefile: https://geoportal.statistics.gov.uk/datasets/local-authority-dist
  11 March: did it
  12 March: add subregions
  13 Mar: Broke ipython and spyder. Now just run as python script...
-
- From: https://www.gov.uk/government/publications/covid-19-track-coronavirus-cases
-
- Now have UTLA cases table:
- https://www.arcgis.com/home/item.html?id=b684319181f94875a6879bbc833ca3a6
-
-
- #### Summary animations: Daily confirmed cases 7th-15th March
-![Daily confirmed cases 7th-15th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_England.gif)
-
-![Daily confirmed cases 7th-15th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_NW.gif)
-
-![Daily confirmed cases 7th-15th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_London.gif)
+ 14 Mar: implement log scaling onto discrete integer values
