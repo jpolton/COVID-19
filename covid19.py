@@ -46,7 +46,7 @@ import matplotlib.pyplot as plt # plotting
 import matplotlib.cm as cm   # colormap functionality
 import matplotlib.colors as mcolors # make new colormap
 import os # make animation using system call "convert"
-
+import datetime
 import numpy as np
 import geopandas as gpd
 import pandas as pd # read in CSV data
@@ -143,7 +143,7 @@ def make_colormap(type='lin', N=11):
         #grey_pal = np.array([[.8, .8, .8, 1.]])
 
         ## stack colors together: Blue and Red
-        colors_new = np.vstack(( blu_cmap(np.linspace(0.25, 1, 5)), red_cmap(np.linspace(0.25, 1, 5)) ))
+        colors_new = np.vstack(( blu_cmap(np.linspace(0.25, 0.75, 5)), red_cmap(np.linspace(0.25, 1, 5)) ))
 
         # create new colormap
         my_cmap = mcolors.ListedColormap( colors_new )
@@ -154,25 +154,30 @@ def make_colormap(type='lin', N=11):
     return my_cmap
 
 
-def single_frame_plot(daystr,region,maxval=20.):
+def single_frame_plot(date_time,region,maxval=20.):
     """
     Draw and save a map frame for a given day and region.
     Example usage:
         region_Lon = {'name': 'London',  'xlim':[-0.6,0.5], 'ylim':[51.2,51.8], 'date_loc':[0.2,51.75] }
-        daystr = '13'
+        date_time = datetime.datetime(2020,3,5)
         maxval = 10.
-        single_frame_plot(daystr,region_Lon,maxval)
+        single_frame_plot(date_time,region_Lon,maxval)
     --> FIGURES/COVID-19_London_13.png
     """
 
-    datestr = daystr + " March"
-    titlestr = 'COVID-19 total confirmed cases by local authority (England)'
+    #datestr = daystr + " March"
+    datestr = date_time.strftime("%a %d %b")  # datetime
+    daystr =  date_time.strftime("%d")
+
+    titlestr = 'COVID-19 total confirmed cases by local authority'
     #sourcestr = 'data source: www.gov.uk/government/publications/coronavirus-covid-19-number-of-cases-in-england'
     sourcestr = 'data source: www.gov.uk/government/publications/covid-19-track-coronavirus-cases'
-
+    sourcestr2 = 'phw.nhs.wales/news/public-health-wales-statement-on-novel-coronavirus-outbreak'
     # Set the font dictionaries (for plot title and axis titles)
     kw_source_label = {'fontname':'Arial', 'size':'6', 'color':'black', 'weight':'normal',
                 'horizontalalignment': 'right', 'verticalalignment':'top'}
+    kw_source2_label = {'fontname':'Arial', 'size':'6', 'color':'black', 'weight':'normal',
+                'horizontalalignment': 'right', 'verticalalignment':'bottom'}
     kw_date_label = {'fontname':'Arial', 'size':'16', 'color':'black', 'weight':'bold',
                 'horizontalalignment': 'left', 'verticalalignment':'bottom'}
 
@@ -188,13 +193,13 @@ def single_frame_plot(daystr,region,maxval=20.):
     geodf.boundary.plot( ax=ax, linewidth=0.25, color='k' ) # make boundaries grey when there are more reported areas
     if colormap_type == 'lin':
         colorbar_extend_str = 'max'
-        geodf.plot(column=daystr, ax=ax, legend=False,
-                vmin=0, vmax=11,
+        geodf.plot(column=date_time, ax=ax, legend=False,
+                vmin=0, vmax=maxval,
                 missing_kwds={'color': 'lightgray'},
                 cmap=make_colormap() )
     elif colormap_type == 'log':
         colorbar_extend_str = 'min'
-        geodf.plot(column=daystr, ax=ax, legend=False,
+        geodf.plot(column=date_time, ax=ax, legend=False,
                 missing_kwds={'color': 'lightgray'},
                 cmap=make_colormap(type='log',N=11),
                 norm=mcolors.LogNorm(vmin=1, vmax=maxval) )
@@ -212,13 +217,13 @@ def single_frame_plot(daystr,region,maxval=20.):
 
     if colormap_type == 'log':
         # Find base such that int(base**(N-1) = maxval
-        base = np.e** (np.log(maxval) /(N))
-        ticks = [int(base**i) for i in range(N+3) ]
+        base = np.e**(np.log(maxval) /(N))
+        ticks = [int(base**i) for i in range(N+2) ]
         ticks = list(set(ticks))
         ticks.sort()
-        ticks = ticks[0:N+1]
+        ticks = ticks[0:N]
 
-        cb=plt.colorbar(axx.collections[1], #extend=colorbar_extend_str,
+        cb=plt.colorbar(axx.collections[1], extend='max',
                                 #norm=mcolors.LogNorm(vmin=0, vmax=maxval),
                                 ticks=ticks,
                                 boundaries=ticks,
@@ -236,7 +241,8 @@ def single_frame_plot(daystr,region,maxval=20.):
     ax.set_title(titlestr)
     ax.text(region['date_loc'][0], region['date_loc'][1], datestr, **kw_date_label)
     #ax.text(1.9, 50.0, sourcestr, **kw_label )
-    ax.text(region['xlim'][1], region['ylim'][0], sourcestr, **kw_source_label )
+    ax.text(region['xlim'][1], region['ylim'][0], sourcestr+'\n'+sourcestr2, **kw_source_label )
+    #ax.text(region['xlim'][1], region['ylim'][0], sourcestr2, **kw_source2_label )
 
     ax.axis('off')
     #fig.tight_layout()
@@ -417,9 +423,9 @@ def plot_frames_to_file(geodf, regions, days):
         maxval = find_max_in_region(geodf,region,days) # Find the max value to construct the colorscale
         print('Max val %d'%maxval)
 
-        for daystr in  days:
-
-            single_frame_plot(daystr,region,maxval)
+        for date_time in  days:
+            daystr =  date_time.strftime("%d")
+            single_frame_plot(date_time,region,maxval)
             files.append(ofile.replace('.gif','')+'_'+daystr+'.png')
 
         if len(days)>6:
@@ -476,14 +482,28 @@ if __name__ == '__main__':
     # Define the date range. Use 2-digit strings.
     #  These will be the column labels for the case data
     #  The COVID-19 source data has labels of the form 'dd/mm'
-    days = ['07', '08', '09', '10', '11', '12', '13', '14','15']
+    #days = ['07', '08', '09', '10', '11', '12', '13', '14','15', '16']
+
+    days = [ datetime.datetime(2020,3,7),
+                datetime.datetime(2020,3,8),
+                datetime.datetime(2020,3,9),
+                datetime.datetime(2020,3,10),
+                datetime.datetime(2020,3,11),
+                datetime.datetime(2020,3,12),
+                datetime.datetime(2020,3,13),
+                datetime.datetime(2020,3,14),
+                datetime.datetime(2020,3,15),
+                datetime.datetime(2020,3,16) ]
 
     geodf = load_geodataframe(days)
 
 
     # # Make regional plots for each day and each region
-    #plot_frames_to_file(geodf,regions,days) # All regions and all days
+    plot_frames_to_file(geodf,regions,days) # All regions and all days
     #plot_frames_to_file(geodf,[region_NW],days) # A single region and all day
-    plot_frames_to_file(geodf,[region_Eng],['15']) # A single region and day
+    #plot_frames_to_file(geodf,[region_Eng],['15']) # A single region and day
     #plot_frames_to_file(geodf,regions,[days[-1]]) # All regions, last day
+
+    #plot_frames_to_file(geodf,[region_Eng],[datetime.datetime(2020,3,15)]) # A single region and day
+
     plt.show()
