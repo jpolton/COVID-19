@@ -257,27 +257,6 @@ def single_frame_plot(daystr,region,maxval=20.):
 
     return
 
-def edit_colourbar():
-    """
-    Manipulate the colorbar
-    Not used yet. Will probably implement as the colorbar is an issue
-    """
-    fig, ax = plt.subplots(1, 1)
-    plt.rcParams['figure.figsize'] = (10.0, 6.0)
-
-    shp.boundary.plot( ax=ax, linewidth=0.25, color='k' ) # make boundaries grey when there are more reported areas
-    shp.plot(column=daystr, ax=ax, legend=False, missing_kwds={'color': 'lightgray'},
-              vmin=0, vmax=11 ,cmap=make_colormap() )
-
-    axx=plt.gca()
-    plt.colorbar(axx.collections[1], )
-
-
-    cb=plt.colorbar(axx.collections[1])
-
-    cb.ax.set_ylabel('Number of confirmed cases')
-
-
 
 
 def widgets_thing():
