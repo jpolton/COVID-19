@@ -334,14 +334,18 @@ def load_shapefile():
     # Join Cornwall and Scilly polygons. Find the indices
     iCIoS = shp.index[ (shp['ctyua17nm'] == 'Isles of Scilly') | (shp['ctyua17nm'] == 'Cornwall')  ].tolist()
     shp.loc[ iCIoS, 'merge'] = 'CIoS'
+    # Join Hackney and City of London
+    iHCoL = shp.index[ (shp['ctyua17nm'] == 'Hackney') | (shp['ctyua17nm'] == 'City of London')  ].tolist()
+    shp.loc[ iHCoL, 'merge'] = 'HCoL'
     # Merge into a new geodf
     shp2 = shp.dissolve(by='merge')
     # Relable place names
     shp2 = shp2.replace('Bournemouth','Bournemouth, Christchurch and Poole')
     print('NB Christchurch region is folded into Dorset')
     shp2 = shp2.replace('Cornwall', 'Cornwall and Isles of Scilly')
+    shp2 = shp2.replace('Hackney', 'Hackney and City of London')
     # Tidy up and concat
-    shp = shp.drop(iCIoS).drop(iBCP)
+    shp = shp.drop(iCIoS).drop(iBCP).drop(iHCoL)
     shp3 = gpd.GeoDataFrame(pd.concat([shp,shp2], ignore_index=True), crs=shp.crs)
 
 
@@ -376,8 +380,68 @@ def load_covid():
     #fname = 'DATA/Covid-19/COVID19-England - Summary.csv'
     print('Load COVID-19 data from %s'%fname)
     covid = pd.read_csv(fname).set_index('Unnamed: 0')
+    # Relabel colums and convert to datetime object
+    for col in covid.columns:
+        covid = covid.rename( columns={ col: col+'/2020'} )
+    #covid.columns = pd.to_datetime(covid.columns)
 
     return covid
+
+
+def load_tomwhite_covid():
+    """
+    load in CSV data for confirmed cases per day and region.
+    load data from TomWhite GitHub:
+
+
+    Date	Country	AreaCode	Area	TotalCases
+    2020-03-05	England	E09000002	Barking and Dagenham	0
+
+    Pivot the data to rows of placenames and columns of dates
+    """
+
+    url = 'https://raw.githubusercontent.com/tomwhite/covid-19-uk-data/master/data/covid-19-cases-uk.csv'
+    print('Load COVID-19 data from %s'%url)
+
+    mydateparser = lambda x: datetime.datetime.strptime(x, "%Y-%m-%d")
+    covid = pd.read_csv(url,index_col=3,parse_dates=[0], date_parser=mydateparser)
+    covid = covid.reset_index()
+    covid = covid.pivot(index='Area', columns='Date', values='TotalCases' )
+    covid = covid.drop('awaiting clarification').drop('Awaiting confirmation')
+    covid = covid.drop('Resident outside Wales').drop('Residential area to be confirmed')
+    # Drop first two date columns with incomplete data
+    covid.drop(covid.columns[[0, 1]], axis=1, inplace=True)
+    # Patch a data
+    """
+    ## Find rows where NaNs are lurking
+    is_NaN = covid.isnull()
+    row_has_NaN = is_NaN.any(axis=1); rows_with_NaN = covid[row_has_NaN]
+    rows_with_NaN
+    """
+
+    covid.loc['Cornwall and Isles of Scilly']['2020-03-08'] = covid.loc['Cornwall']['2020-03-08'];  #  3 cases
+    covid = covid.drop('Cornwall').drop('Isles of Scilly')
+
+    covid.loc['Bournemouth, Christchurch and Poole']['2020-03-07'] = covid.loc['Poole']['2020-03-07']
+    covid = covid.drop('Poole').drop('Bournemouth')
+
+    covid.loc['Hackney and City of London']['2020-03-08'] = covid.loc['Hackney']['2020-03-08'];  #  3 cases
+    covid = covid.drop('Hackney').drop('City of London')
+
+    ## Remove Scotland for Now
+    """
+    rows_with_NaN
+
+    Date                             2020-03-07 2020-03-08 2020-03-09 2020-03-10  ... 2020-03-13 2020-03-14 2020-03-15 2020-03-16
+    Area                                                                          ...
+    Borders                                 NaN        NaN        NaN        NaN  ...          3          5          7          7
+    Dumfries and Galloway                   NaN        NaN        NaN        NaN  ...        NaN        NaN        NaN          1
+    Highland                                NaN        NaN        NaN        NaN  ...        NaN          1          2          2
+    Shetland                                NaN        NaN          2          2  ...          6         11         11         15
+    """
+    covid = covid.dropna().astype(int) # nasty nan's stopped the data being interpreted as int on reading in.
+    return covid
+
 
 
 def load_geodataframe(days):
@@ -397,14 +461,18 @@ def load_geodataframe(days):
     geodf = load_shapefile()
 
     # Load covid-19 confirmed cases by day bby local authority data
-    covid = load_covid()
+    #covid = load_covid()
+    covid = load_tomwhite_covid()
 
 
     # Add the count to the boundary shapefile, as a new column
     print('Add COVID-19 data to geodataframe')
-    print('Assume the column headers are dates of the form 07/03')
+    #print('Assume the column headers are dates of the form 07/03')
+    #for day in days:
+        #geodf[day] = covid[day+'/03']    print('Assume the column headers are dates of the form 07/03')
+    print('Assume the column headers are datetime entries')
     for day in days:
-        geodf[day] = covid[day+'/03']
+        geodf[day] = covid[day]
 
     return geodf
 
