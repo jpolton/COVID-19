@@ -170,15 +170,15 @@ def single_frame_plot(date_time,region,maxval=20.):
     datestr = date_time.strftime("%a %d %b")  # datetime
     daystr =  date_time.strftime("%d")
 
-    titlestr = 'COVID-19 total confirmed cases by local authority'
     #sourcestr = 'data source: www.gov.uk/government/publications/coronavirus-covid-19-number-of-cases-in-england'
-    sourcestr = 'data source: www.gov.uk/government/publications/covid-19-track-coronavirus-cases'
-    sourcestr2 = 'phw.nhs.wales/news/public-health-wales-statement-on-novel-coronavirus-outbreak'
+    sourcePHEstr = 'data source: www.gov.uk/government/publications/covid-19-track-coronavirus-cases'
+    sourcePHWstr = 'phw.nhs.wales/news/public-health-wales-statement-on-novel-coronavirus-outbreak'
+    sourceGITstr = 'https://github.com/jpolton/COVID-19'
     # Set the font dictionaries (for plot title and axis titles)
     kw_source_label = {'fontname':'Arial', 'size':'6', 'color':'black', 'weight':'normal',
                 'horizontalalignment': 'right', 'verticalalignment':'top'}
-    kw_source2_label = {'fontname':'Arial', 'size':'6', 'color':'black', 'weight':'normal',
-                'horizontalalignment': 'right', 'verticalalignment':'bottom'}
+    kw_sourcegit_label = {'fontname':'Arial', 'size':'6', 'color':'black', 'weight':'normal',
+                'horizontalalignment': 'left', 'verticalalignment':'top'}
     kw_date_label = {'fontname':'Arial', 'size':'16', 'color':'black', 'weight':'bold',
                 'horizontalalignment': 'left', 'verticalalignment':'bottom'}
 
@@ -209,6 +209,15 @@ def single_frame_plot(date_time,region,maxval=20.):
 
     # Edit and present colorbar
     axx=plt.gca()
+    if region['name'] == 'London':
+        orientation_str='horizontal'
+        titlestr = 'COVID-19 total confirmed cases for LONDON by local authority'
+    elif region['name'] == 'NW':
+        titlestr = 'COVID-19 total confirmed cases for NW England and Wales by local authority'
+        orientation_str='vertical'
+    else:
+        titlestr = 'COVID-19 total confirmed cases for England and Wales by local authority'
+        orientation_str='vertical'
     #if region['name'] == 'London':
     #    cb=plt.colorbar(axx.collections[1], extend=colorbar_extend_str, orientation='horizontal')
     #    cb.ax.set_xlabel('Number of confirmed cases')
@@ -229,7 +238,7 @@ def single_frame_plot(date_time,region,maxval=20.):
                                 ticks=ticks,
                                 boundaries=ticks,
                                 spacing='proportional',
-                                orientation='vertical')
+                                orientation=orientation_str)
 
         #cb.set_ticks(ticks)
         cb.set_ticklabels( [str(i) for i in ticks] )
@@ -242,7 +251,8 @@ def single_frame_plot(date_time,region,maxval=20.):
     ax.set_title(titlestr)
     ax.text(region['date_loc'][0], region['date_loc'][1], datestr, **kw_date_label)
     #ax.text(1.9, 50.0, sourcestr, **kw_label )
-    ax.text(region['xlim'][1], region['ylim'][0], sourcestr+'\n'+sourcestr2, **kw_source_label )
+    ax.text(region['xlim'][1], region['ylim'][0], sourcePHEstr+'\n'+sourcePHWstr, **kw_source_label )
+    ax.text(region['xlim'][0], region['ylim'][0], sourceGITstr, **kw_sourcegit_label )
     #ax.text(region['xlim'][1], region['ylim'][0], sourcestr2, **kw_source2_label )
 
     ax.axis('off')
@@ -344,7 +354,7 @@ def load_shapefile():
     shp2 = shp2.replace('Bournemouth','Bournemouth, Christchurch and Poole')
     print('NB Christchurch region is folded into Dorset')
     shp2 = shp2.replace('Cornwall', 'Cornwall and Isles of Scilly')
-    shp2 = shp2.replace('Hackney', 'Hackney and City of London')
+    shp2 = shp2.replace('City of London', 'Hackney and City of London')
     # Tidy up and concat
     shp = shp.drop(iCIoS).drop(iBCP).drop(iHCoL)
     shp3 = gpd.GeoDataFrame(pd.concat([shp,shp2], ignore_index=True), crs=shp.crs)
@@ -409,7 +419,10 @@ def load_tomwhite_covid():
     covid = covid.reset_index()
     covid = covid.pivot(index='Area', columns='Date', values='TotalCases' )
     covid = covid.drop('awaiting clarification').drop('Awaiting confirmation')
-    covid = covid.drop('Resident outside Wales').drop('Residential area to be confirmed')
+    try:
+        covid = covid.drop('Resident outside Wales').drop('Residential area to be confirmed')
+    except:
+        pass
     # Drop first two date columns with incomplete data
     covid.drop(covid.columns[[0, 1]], axis=1, inplace=True)
     # Patch a data
@@ -562,7 +575,8 @@ if __name__ == '__main__':
                 datetime.datetime(2020,3,13),
                 datetime.datetime(2020,3,14),
                 datetime.datetime(2020,3,15),
-                datetime.datetime(2020,3,16) ]
+                datetime.datetime(2020,3,16),
+                datetime.datetime(2020,3,17) ]
 
     geodf = load_geodataframe(days)
 
@@ -572,6 +586,7 @@ if __name__ == '__main__':
     #plot_frames_to_file(geodf,[region_NW],days) # A single region and all day
     #plot_frames_to_file(geodf,[region_Eng],['15']) # A single region and day
     #plot_frames_to_file(geodf,regions,[days[-1]]) # All regions, last day
+    #plot_frames_to_file(geodf,[region_Lon],[days[-1]]) # All regions, last day
 
     #plot_frames_to_file(geodf,[region_Eng],[datetime.datetime(2020,3,15)]) # A single region and day
 
