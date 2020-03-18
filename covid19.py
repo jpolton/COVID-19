@@ -213,10 +213,12 @@ def single_frame_plot(date_time,region,maxval=20.):
         orientation_str='horizontal'
         titlestr = 'COVID-19 total confirmed cases for LONDON by local authority'
     elif region['name'] == 'NW':
-        titlestr = 'COVID-19 total confirmed cases for NW England and Wales by local authority'
+        #titlestr = 'COVID-19 total confirmed cases for NW England and Wales by local authority'
+        titlestr = 'COVID-19 total confirmed cases for NW England by local authority'
         orientation_str='vertical'
     else:
-        titlestr = 'COVID-19 total confirmed cases for England and Wales by local authority'
+        #titlestr = 'COVID-19 total confirmed cases for England and Wales by local authority'
+        titlestr = 'COVID-19 total confirmed cases for England by local authority'
         orientation_str='vertical'
     #if region['name'] == 'London':
     #    cb=plt.colorbar(axx.collections[1], extend=colorbar_extend_str, orientation='horizontal')
@@ -393,8 +395,10 @@ def load_covid():
     covid = pd.read_csv(fname).set_index('Unnamed: 0')
     # Relabel colums and convert to datetime object
     for col in covid.columns:
-        covid = covid.rename( columns={ col: col+'/2020'} )
+        #covid = covid.rename( columns={ col: col+'/2020'} )
+        covid = covid.rename( columns={ col: datetime.datetime.strptime( "2020/"+col, "%Y/%d/%m")  } )
     #covid.columns = pd.to_datetime(covid.columns)
+    covid.columns = pd.to_datetime(covid.columns)
 
     return covid
 
@@ -475,8 +479,8 @@ def load_geodataframe(days):
     geodf = load_shapefile()
 
     # Load covid-19 confirmed cases by day bby local authority data
-    #covid = load_covid()
-    covid = load_tomwhite_covid()
+    covid = load_covid()
+    #covid = load_tomwhite_covid()
 
 
     # Add the count to the boundary shapefile, as a new column
@@ -576,7 +580,8 @@ if __name__ == '__main__':
                 datetime.datetime(2020,3,14),
                 datetime.datetime(2020,3,15),
                 datetime.datetime(2020,3,16),
-                datetime.datetime(2020,3,17) ]
+                datetime.datetime(2020,3,17),
+                datetime.datetime(2020,3,18) ]
 
     geodf = load_geodataframe(days)
 
