@@ -555,6 +555,68 @@ def find_max_in_region(geodf,region,days):
     #print(boundary.geometry)
     return max_over_time_per_polygon.max() # Max over time and region
 
+def doubling(days,doubling_period):
+    """
+    calculate function that doubles every 'doubling_period' days
+    fn(t+dt) = 2.fn(t), for doubling period dt.
+    exp(alpha(t + dt)) = 2.exp(alpha.t)
+    exp(alpha.dt) = 2
+    dt = log 2 / alpha, where alpha is the slope of the straight line of the data in log space.
+
+    If dt = 4 days, alpha = log2/4
+
+    """
+    nt = len(days)
+    fn = np.zeros(nt)*np.NaN
+    alpha = np.log(2)/doubling_period
+    for i in range(1,nt):
+        fn[i] = np.e**(i*alpha)
+    return fn
+
+def extract_timeseries(geodf,days):
+    """
+    Extract and plot the growth rates of reported cases
+    """
+    names = geodf.index
+
+    nt = len(days)
+    nn = len(names)
+    time_series = np.zeros((nn,nt))*np.nan
+
+    for n in range(nn): # over names
+        for i in range(nt): # over days
+            #day = days[i]
+            time_series[n,i] = geodf.loc[names[n]][days[i]]
+
+    # plot timeseries on log scale
+    threshold_to_plot = 30 # activate plotting
+    fig, ax = plt.subplots(1, 1)
+    plt.rcParams['figure.figsize'] = (10.0, 6.0)
+    for n in range(nn):
+        if (time_series[n,-1]>threshold_to_plot) and (time_series[n,0]>1):
+            plt.semilogy( days, time_series[n,:], label=names[n] )
+
+
+    plt.semilogy(days, 5*doubling(days,2), 'k', linewidth=2, label='doubling rate = 2 day' )
+    plt.semilogy(days, 5*doubling(days,3), 'k', linewidth=3, label='doubling rate = 3 days' )
+    plt.semilogy(days, 5*doubling(days,5), 'k', linewidth=5, label='doubling rate = 5 days' )
+    #plt.set_yscale('log')
+
+    plt.legend(loc='best', # bbox_to_anchor=(-0.5, 0.95),
+          ncol=2, fancybox=True, shadow=True)
+
+    plt.xlabel('date')
+    plt.title('Analysis of confirmed cases in England for 10 top regions')
+    plt.ylabel('Total number of confirmed cases')
+    #plt.legend(location='outer');
+
+    fname = 'FIGURES/doubling_rate_England.png'
+    print('Saving %s'%fname)
+    #plt.savefig(fname, dpi=150)
+
+
+    return
+
 ##########################################################################################################################
 ## Now do the main routine stuff
 if __name__ == '__main__':
