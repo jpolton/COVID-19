@@ -3,13 +3,24 @@
 The motivation was to learn how to do geospatial data handling and plotting in Python,
 here [geopandas](https://geopandas.org). COVID-19 confirmed cases by region seemed like a suitable dataset to learn on. But perhaps to many the image outputs are of more interest than the methods used...
 
+## Doubling rates of confirmed cases in March
+
+Pragmatic criteria for testing result in under reporting for actual cases. Nevertheless it is interesting to look at the growth rate of confirmed cases. Plotting the total number of confirmed cases on a logarithmic count scale, against day, will give a straight line if the data are doubling at a steady rate. The steeper the line the faster the rate. Here I plot the data for the reporting districts in England with the largest number cases (hence least noisy data):
+
+![doubling rates in England](https://github.com/jpolton/COVID-19/blob/master/FIGURES/doubling_rate_England.png)
+
+In black 3 lines are drawn to show the expected slopes for data that doubles every 2, 3 or 5 days.
+
+
 ## Summary animations: Daily confirmed cases March
 
-![Daily confirmed cases 7th-15th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_England.gif)
+![Daily confirmed cases 7th-18th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_England.gif)
 
-![Daily confirmed cases 7th-15th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_NW.gif)
+![Daily confirmed cases 7th-18th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_NW.gif)
 
-![Daily confirmed cases 7th-15th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_London.gif)
+![Daily confirmed cases 7th-18th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_London.gif)
+
+
 
 
 ## Data sources

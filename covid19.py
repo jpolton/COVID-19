@@ -649,12 +649,16 @@ if __name__ == '__main__':
 
 
     # # Make regional plots for each day and each region
-    plot_frames_to_file(geodf,regions,days) # All regions and all days
+    #plot_frames_to_file(geodf,regions,days) # All regions and all days
     #plot_frames_to_file(geodf,[region_NW],days) # A single region and all day
     #plot_frames_to_file(geodf,[region_Eng],['15']) # A single region and day
     #plot_frames_to_file(geodf,regions,[days[-1]]) # All regions, last day
     #plot_frames_to_file(geodf,[region_Lon],[days[-1]]) # All regions, last day
 
     #plot_frames_to_file(geodf,[region_Eng],[datetime.datetime(2020,3,15)]) # A single region and day
+
+    ## Plot the growth rate for reporting areas
+    extract_timeseries(geodf,days)
+
 
     plt.show()
