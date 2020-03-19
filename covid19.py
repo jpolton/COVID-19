@@ -610,9 +610,16 @@ def extract_timeseries(geodf,days):
     plt.ylabel('Total number of confirmed cases')
     #plt.legend(location='outer');
 
+    sourcePHEstr = 'data source: www.gov.uk/government/publications/covid-19-track-coronavirus-cases'
+    sourceGITstr = 'https://github.com/jpolton/COVID-19'
+
+    plt.text(days[-1], 1, sourcePHEstr, **kw_source_label )
+    plt.text(days[0], 1, sourceGITstr, **kw_sourcegit_label )
+
+
     fname = 'FIGURES/doubling_rate_England.png'
     print('Saving %s'%fname)
-    #plt.savefig(fname, dpi=150)
+    plt.savefig(fname, dpi=150)
 
 
     return
