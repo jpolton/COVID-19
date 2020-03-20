@@ -236,6 +236,7 @@ def single_frame_plot(date_time,region,maxval=20.):
         ticks = list(set(ticks))
         ticks.sort()
         ticks = ticks[0:N]
+        print('Ticks: ',ticks)
 
         cb=plt.colorbar(axx.collections[1], extend='max',
                                 #norm=mcolors.LogNorm(vmin=0, vmax=maxval),
@@ -254,10 +255,9 @@ def single_frame_plot(date_time,region,maxval=20.):
 
     ax.set_title(titlestr)
     ax.text(region['date_loc'][0], region['date_loc'][1], datestr, **kw_date_label)
-    #ax.text(1.9, 50.0, sourcestr, **kw_label )
-    ax.text(region['xlim'][1], region['ylim'][0], sourcePHEstr+'\n'+sourcePHWstr, **kw_source_label )
+    ax.text(region['xlim'][1], region['ylim'][0], sourcePHEstr, **kw_source_label )
+    #ax.text(region['xlim'][1], region['ylim'][0], sourcePHEstr+'\n'+sourcePHWstr, **kw_source_label )
     ax.text(region['xlim'][0], region['ylim'][0], sourceGITstr, **kw_sourcegit_label )
-    #ax.text(region['xlim'][1], region['ylim'][0], sourcestr2, **kw_source2_label )
 
     ax.axis('off')
     #fig.tight_layout()
@@ -318,15 +318,26 @@ def load_shapefile_old():
     print('Load shapefile data from %s'%shapefile)
     shp = gpd.read_file(shapefile)
 
+    shp['merge'] = None
+    # Join Hackney and City of London
+    iHCoL = shp.index[ (shp['lad17nm'] == 'Hackney') | (shp['lad17nm'] == 'City of London')  ].tolist()
+    shp.loc[ iHCoL, 'merge'] = 'HCoL'
+    # Merge into a new geodf
+    shp2 = shp.dissolve(by='merge')
+    # Relable place names
+    shp2 = shp2.replace('City of London', 'Hackney and City of London')
+    # Tidy up and concat
+    shp = shp.drop(iHCoL)
+    shp3 = gpd.GeoDataFrame(pd.concat([shp,shp2], ignore_index=True), crs=shp.crs)
+
     # Set index to be the regional name
-    shp = shp.set_index('lad17nm')
+    shp3 = shp3.set_index('lad17nm')
 
     # Before plotting the data, first change the Coordinate Reference System to one that uses degrees, for plotting ease
     #imd = imd.to_crs("EPSG:3395") # metres
-    shp = shp.to_crs("EPSG:4326") # degrees
+    shp3 = shp3.to_crs("EPSG:4326") # degrees
     #print(shp.crs)
-
-    return shp
+    return shp3
 
 def load_shapefile():
     """
@@ -372,9 +383,6 @@ def load_shapefile():
     #imd = imd.to_crs("EPSG:3395") # metres
     shp3 = shp3.to_crs("EPSG:4326") # degrees
     #print(shp.crs)
-
-
-
     return shp3
 
 
@@ -518,7 +526,12 @@ def load_geodataframe(days):
     """
 
     # Load local authority boundary shapefile data in a geodataframe
-    geodf = load_shapefile()
+    if(1): #region['name'] == 'London': # use a shapefile that doesn't have the larger home counties in so that only Greater London (smaller regions) are plotted
+        print('Using old shapefile, smaller regions')
+        print('Hackney and City o L issue')
+        geodf = load_shapefile_old()
+    else:
+        geodf = load_shapefile()
 
     # Load covid-19 confirmed cases by day bby local authority data
     covid = load_covid()
@@ -736,7 +749,8 @@ if __name__ == '__main__':
                 datetime.datetime(2020,3,15),
                 datetime.datetime(2020,3,16),
                 datetime.datetime(2020,3,17),
-                datetime.datetime(2020,3,18) ]
+                datetime.datetime(2020,3,18),
+                datetime.datetime(2020,3,19) ]
 
     geodf = load_geodataframe(days)
 
