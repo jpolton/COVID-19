@@ -146,7 +146,8 @@ def make_colormap(type='lin', N=11):
         #grey_pal = np.array([[.8, .8, .8, 1.]])
 
         ## stack colors together: Blue and Red
-        colors_new = np.vstack(( blu_cmap(np.linspace(0.25, 0.75, 5)), red_cmap(np.linspace(0.25, 1, 5)) ))
+        #colors_new = np.vstack(( blu_cmap(np.linspace(0.25, 0.75, 5)), red_cmap(np.linspace(0.25, 1, 5)) ))
+        colors_new = np.vstack(( white_pal, blu_cmap(np.linspace(0.25, 0.75, 5)), red_cmap(np.linspace(0.25, 1, 5)) ))
 
         # create new colormap
         my_cmap = mcolors.ListedColormap( colors_new )
@@ -157,14 +158,14 @@ def make_colormap(type='lin', N=11):
     return my_cmap
 
 
-def single_frame_plot(date_time,region,maxval=20.):
+def single_frame_plot(geodf,date_time,region,maxval=20.):
     """
     Draw and save a map frame for a given day and region.
     Example usage:
         region_Lon = {'name': 'London',  'xlim':[-0.6,0.5], 'ylim':[51.2,51.8], 'date_loc':[0.2,51.75] }
         date_time = datetime.datetime(2020,3,5)
         maxval = 10.
-        single_frame_plot(date_time,region_Lon,maxval)
+        single_frame_plot(geodf,date_time,region_Lon,maxval)
     --> FIGURES/COVID-19_London_13.png
     """
 
@@ -175,7 +176,8 @@ def single_frame_plot(date_time,region,maxval=20.):
     #sourcestr = 'data source: www.gov.uk/government/publications/coronavirus-covid-19-number-of-cases-in-england'
     sourcePHEstr = 'data source: www.gov.uk/government/publications/covid-19-track-coronavirus-cases'
     sourcePHWstr = 'phw.nhs.wales/news/public-health-wales-statement-on-novel-coronavirus-outbreak'
-    sourceGITstr = 'https://github.com/jpolton/COVID-19'
+    sourceGoogstr = 'compiled: www.lpchong.com/post/covid19-confirmed-cases-in-england-by-upper-tier-local-authority-daily'
+    sourceGITstr = 'code: github.com/jpolton/COVID-19'
     # Set the font dictionaries (for plot title and axis titles)
     kw_source_label = {'fontname':'Arial', 'size':'6', 'color':'black', 'weight':'normal',
                 'horizontalalignment': 'right', 'verticalalignment':'top'}
@@ -188,7 +190,10 @@ def single_frame_plot(date_time,region,maxval=20.):
     #my_colormap, my_ticks, my_ticklabels = make_colormap2(maxval)
 
     colormap_type = 'log' # 'lin' # 'log' WIP.
-    N = 11 # Number of rectangular colorbar elements
+    N = 13 # Number of rectangular colorbar elements
+
+    fig, ax = plt.subplots(1, 1) # dummy figure
+    plt.rcParams['figure.figsize'] = (10.0, 6.0) # dummy figure
 
     fig, ax = plt.subplots(1, 1)
     plt.rcParams['figure.figsize'] = (10.0, 6.0)
@@ -204,7 +209,7 @@ def single_frame_plot(date_time,region,maxval=20.):
         colorbar_extend_str = 'min'
         geodf.plot(column=date_time, ax=ax, legend=False,
                 missing_kwds={'color': 'lightgray'},
-                cmap=make_colormap(type='log',N=11),
+                cmap=make_colormap(type='log',N=N),
                 norm=mcolors.LogNorm(vmin=1, vmax=maxval) )
 
 
@@ -235,7 +240,7 @@ def single_frame_plot(date_time,region,maxval=20.):
         ticks = [int(base**i) for i in range(N+2) ]
         ticks = list(set(ticks))
         ticks.sort()
-        ticks = ticks[0:N]
+        ticks = ticks[0:N+1]
         print('Ticks: ',ticks)
 
         cb=plt.colorbar(axx.collections[1], extend='max',
@@ -255,8 +260,8 @@ def single_frame_plot(date_time,region,maxval=20.):
 
     ax.set_title(titlestr)
     ax.text(region['date_loc'][0], region['date_loc'][1], datestr, **kw_date_label)
-    ax.text(region['xlim'][1], region['ylim'][0], sourcePHEstr, **kw_source_label )
-    #ax.text(region['xlim'][1], region['ylim'][0], sourcePHEstr+'\n'+sourcePHWstr, **kw_source_label )
+    #ax.text(region['xlim'][1], region['ylim'][0], sourcePHEstr, **kw_source_label )
+    ax.text(region['xlim'][1], region['ylim'][0], sourcePHEstr+'\n'+sourceGoogstr, **kw_source_label )
     ax.text(region['xlim'][0], region['ylim'][0], sourceGITstr, **kw_sourcegit_label )
 
     ax.axis('off')
@@ -566,7 +571,7 @@ def plot_frames_to_file(geodf, regions, days):
 
         for date_time in  days:
             daystr =  date_time.strftime("%d")
-            single_frame_plot(date_time,region,maxval)
+            single_frame_plot(geodf,date_time,region,maxval)
             files.append(ofile.replace('.gif','')+'_'+daystr+'.png')
 
         if len(days)>6:
@@ -632,6 +637,11 @@ def extract_timeseries(geodf,days):
     """
     Extract and plot the growth rates of reported cases
     """
+    kw_source_label = {'fontname':'Arial', 'size':'6', 'color':'black', 'weight':'normal',
+                'horizontalalignment': 'right', 'verticalalignment':'top'}
+    kw_sourcegit_label = {'fontname':'Arial', 'size':'6', 'color':'black', 'weight':'normal',
+                'horizontalalignment': 'left', 'verticalalignment':'top'}
+
     names = geodf.index
 
     nt = len(days)
@@ -723,49 +733,3 @@ def double_rate_uk_totals():
     plt.show()
 
     return
-##########################################################################################################################
-## Now do the main routine stuff
-if __name__ == '__main__':
-
-    # # Define Regions for plotting
-    region_Eng = {'name': 'England', 'xlim':[-6,2], 'ylim':[50,56], 'date_loc':[0, 55.5] }
-    region_NW = {'name': 'NW', 'xlim':[-3.4,-1.9], 'ylim':[52.8,53.9], 'date_loc':[-3.35, 53.8] }
-    region_Lon = {'name': 'London',  'xlim':[-0.6,0.5], 'ylim':[51.3,51.7], 'date_loc':[0.25,51.65] }
-    regions = [region_Eng, region_NW, region_Lon]
-
-    # Define the date range. Use 2-digit strings.
-    #  These will be the column labels for the case data
-    #  The COVID-19 source data has labels of the form 'dd/mm'
-    #days = ['07', '08', '09', '10', '11', '12', '13', '14','15', '16']
-
-    days = [ datetime.datetime(2020,3,7),
-                datetime.datetime(2020,3,8),
-                datetime.datetime(2020,3,9),
-                datetime.datetime(2020,3,10),
-                datetime.datetime(2020,3,11),
-                datetime.datetime(2020,3,12),
-                datetime.datetime(2020,3,13),
-                datetime.datetime(2020,3,14),
-                datetime.datetime(2020,3,15),
-                datetime.datetime(2020,3,16),
-                datetime.datetime(2020,3,17),
-                datetime.datetime(2020,3,18),
-                datetime.datetime(2020,3,19) ]
-
-    geodf = load_geodataframe(days)
-
-
-    # # Make regional plots for each day and each region
-    #plot_frames_to_file(geodf,regions,days) # All regions and all days
-    #plot_frames_to_file(geodf,[region_NW],days) # A single region and all day
-    #plot_frames_to_file(geodf,[region_Lon],days) # A single region and all day
-    #plot_frames_to_file(geodf,regions,[days[-1]]) # All regions, last day
-    #plot_frames_to_file(geodf,[region_Lon],[days[-1]]) # All regions, last day
-
-    #plot_frames_to_file(geodf,[region_Lon],[datetime.datetime(2020,3,15)]) # A single region and day
-
-    ## Plot the growth rate for reporting areas
-    #extract_timeseries(geodf,days)
-
-    ## Plot doubling rate of UK deaths
-    double_rate_uk_totals()
