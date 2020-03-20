@@ -94,9 +94,9 @@ if __name__ == '__main__':
 
     # # Make regional plots for each day and each region
     #plot_frames_to_file(geodf,regions,days) # All regions and all days
-    #plot_frames_to_file(geodf,[region_NW],days) # A single region and all day
-    c19.plot_frames_to_file(geodf,[region_Lon],days) # A single region and all day
-    #plot_frames_to_file(geodf,regions,[days[-1]]) # All regions, last day
+    c19.plot_frames_to_file(geodf,[region_Eng],days) # A single region and all day
+    #c19.plot_frames_to_file(geodf,[region_Lon],days) # A single region and all day
+    #c19.plot_frames_to_file(geodf,regions,[days[-1]]) # All regions, last day
     #plot_frames_to_file(geodf,[region_Lon],[days[-1]]) # All regions, last day
 
     #c19.plot_frames_to_file(geodf,[region_Lon],[datetime.datetime(2020,3,19)]) # A single region and day

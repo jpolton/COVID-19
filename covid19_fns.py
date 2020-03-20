@@ -531,7 +531,7 @@ def load_geodataframe(days):
     """
 
     # Load local authority boundary shapefile data in a geodataframe
-    if(1): #region['name'] == 'London': # use a shapefile that doesn't have the larger home counties in so that only Greater London (smaller regions) are plotted
+    if(0): #region['name'] == 'London': # use a shapefile that doesn't have the larger home counties in so that only Greater London (smaller regions) are plotted
         print('Using old shapefile, smaller regions')
         print('Hackney and City o L issue')
         geodf = load_shapefile_old()
