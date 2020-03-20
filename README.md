@@ -19,13 +19,13 @@ Pragmatic criteria for testing result in under reporting for actual cases. Never
 In black 3 lines are drawn to show the expected slopes for data that doubles every 2, 3 or 5 days.
 
 
-## Summary animations: Daily confirmed cases March (updated 18 March'20)
+## Summary animations: Daily confirmed cases March (updated 20 March'20)
 
-![Daily confirmed cases 7th-18th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_England.gif)
+![Daily confirmed cases 7th-20th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_England.gif)
 
-![Daily confirmed cases 7th-18th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_NW.gif)
+![Daily confirmed cases 7th-20th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_NW.gif)
 
-![Daily confirmed cases 7th-18th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_London.gif)
+![Daily confirmed cases 7th-20th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_London.gif)
 
 
 
