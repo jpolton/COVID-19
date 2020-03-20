@@ -46,6 +46,8 @@ conda activate geo_env
 import matplotlib.pyplot as plt # plotting
 import matplotlib.cm as cm   # colormap functionality
 import matplotlib.colors as mcolors # make new colormap
+from matplotlib.dates import DateFormatter # format x-axis dates
+
 import os # make animation using system call "convert"
 import datetime
 import numpy as np
@@ -460,6 +462,46 @@ def load_tomwhite_covid():
     covid = covid.dropna().astype(int) # nasty nan's stopped the data being interpreted as int on reading in.
     return covid
 
+def plot_logy_with_fit( days, val, label='label for legend', col='g', ndays=13):
+    """
+    plot the variable against time on logy axis
+    Plot a straight line fit on logy axis
+    ndays - last ndays to fit data to
+    """
+
+    idays = np.arange(len(days))
+
+    plt.semilogy( days, val, 'o', label=label , color=col)
+
+    p = np.polyfit(idays[-ndays::] , np.log( val[val.index[-ndays::]] ), 1)
+    double_rate_str = '{0:3.1f}'.format(np.log(2)/p[0])
+    plt.semilogy(days[val.index[-ndays::]], np.exp(p[0] * idays[-ndays::] + p[1]),
+            '--', color=col, label='Fitted x2 rate = '+double_rate_str+' days')
+
+    return plt
+
+
+def load_tomwhite_uktotals():
+    """
+    load in CSV data for UK deaths.
+    load data from TomWhite GitHub:
+
+    Date	Tests	ConfirmedCases	Deaths
+    2020-01-25	31	0	0
+
+    totals = load_tomwhite_uktotals()
+    Pivot the data to rows of placenames and columns of dates
+    """
+
+    url = 'https://raw.githubusercontent.com/tomwhite/covid-19-uk-data/master/data/covid-19-totals-uk.csv'
+    print('Load COVID-19 data from %s'%url)
+
+    mydateparser = lambda x: datetime.datetime.strptime(x, "%Y-%m-%d")
+    totals = pd.read_csv(url,index_col=3,parse_dates=[0], date_parser=mydateparser)
+    totals = totals.reset_index()
+    #totals = totals.pivot(index='Area', columns='Date', values='TotalCases' )
+
+    return totals
 
 
 def load_geodataframe(days):
@@ -624,6 +666,50 @@ def extract_timeseries(geodf,days):
 
     return
 
+
+def double_rate_uk_totals():
+    totals = load_tomwhite_uktotals()
+
+    sourceDATAstr = 'data: github.com/tomwhite/covid-19-uk-data'
+    sourceGITstr = 'code: github.com/jpolton/COVID-19'
+
+    # Set the font dictionaries (for plot title and axis titles)
+    kw_sourcedata_label = {'fontname':'Arial', 'size':'8', 'color':'black', 'weight':'normal',
+                'horizontalalignment': 'left', 'verticalalignment':'top'}
+    kw_sourcegit_label = {'fontname':'Arial', 'size':'8', 'color':'black', 'weight':'normal',
+                'horizontalalignment': 'right', 'verticalalignment':'top'}
+
+    days = totals['Date']
+    idays = np.arange(len(days))
+
+    fig, ax = plt.subplots(1, 1)
+    plt.rcParams['figure.figsize'] = (10.0, 6.0)
+
+    plot_logy_with_fit( days, totals['Tests'], label='COVID-19 Tests', col='b', ndays=18)
+    plot_logy_with_fit( days, totals['ConfirmedCases'], label='Confirmed Cases', col='g', ndays=18)
+    plot_logy_with_fit( days, totals['Deaths'], label='Deaths', col='r', ndays=13)
+    plt.xlim([datetime.datetime(2020,3,1), days[totals.index[-1]] ])
+    plt.ylabel('Count')
+    plt.xlabel('Date')
+    plt.text(plt.gca().get_xlim()[0], plt.gca().get_ylim()[1], sourceGITstr, **kw_sourcedata_label )
+    plt.text(plt.gca().get_xlim()[1], plt.gca().get_ylim()[1], sourceDATAstr, **kw_sourcegit_label )
+    plt.title('COVID-19: Doubling rates for UK tests, confirmed cases and deaths')
+
+    myFmt = DateFormatter("%d %b")
+    ax.xaxis.set_major_formatter(myFmt)
+
+    ## Rotate date labels automatically
+    fig.autofmt_xdate()
+
+    plt.legend()
+
+    fname = 'FIGURES/uk_totals.png'
+    print('Saving %s'%fname)
+    plt.savefig(fname, dpi=150)
+
+    plt.show()
+
+    return
 ##########################################################################################################################
 ## Now do the main routine stuff
 if __name__ == '__main__':
@@ -658,14 +744,14 @@ if __name__ == '__main__':
     # # Make regional plots for each day and each region
     #plot_frames_to_file(geodf,regions,days) # All regions and all days
     #plot_frames_to_file(geodf,[region_NW],days) # A single region and all day
-    #plot_frames_to_file(geodf,[region_Eng],['15']) # A single region and day
+    #plot_frames_to_file(geodf,[region_Lon],days) # A single region and all day
     #plot_frames_to_file(geodf,regions,[days[-1]]) # All regions, last day
     #plot_frames_to_file(geodf,[region_Lon],[days[-1]]) # All regions, last day
 
-    #plot_frames_to_file(geodf,[region_Eng],[datetime.datetime(2020,3,15)]) # A single region and day
+    #plot_frames_to_file(geodf,[region_Lon],[datetime.datetime(2020,3,15)]) # A single region and day
 
     ## Plot the growth rate for reporting areas
-    extract_timeseries(geodf,days)
+    #extract_timeseries(geodf,days)
 
-
-    plt.show()
+    ## Plot doubling rate of UK deaths
+    double_rate_uk_totals()
