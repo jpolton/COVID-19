@@ -3,9 +3,11 @@
 The motivation was to learn how to do geospatial data handling and plotting in Python,
 here [geopandas](https://geopandas.org). COVID-19 confirmed cases by region seemed like a suitable dataset to learn on. But perhaps to many the image outputs are of more interest than the methods used...
 
-## Doubling rates of UK tests, confirmed cases and deaths (updated 20 March'20)
+## Doubling rates of UK tests, confirmed cases and deaths (updated 24 March'20)
+(Previously, 4 days ago, when I fitted a curve to the data much of the data was for counts less than 100. This gives a spuriously high growth rate. Now I can now fit a curve to the portion of data that exceeds 100. This produces a much more credible doubling rate of 3 days, which matches the growth rate of confirmed cases.)
+Plotting on a log scale gives straight lines for exponential growth. The slope gives the doubling period. Here doubling periods are: 7.7 days (Testing); 3.1 days (Confirmed Cases); and (3.0 days) Deaths.
 
-Having plotted regional doubling rates for Confirmed Cases I was curious to see how this relates to the rate of doubling of the Testing and indeed the number of Deaths. In this expansion stage of the spreading, I assume (as a non-specialist in the field) that the rate at which Confirmed Cases double would equal the rate at which the Death count doubles (I.e. a fixed percentage of Confirmed Cases ends in Death). If the number of tests is limited then the doubling rate of Confirmed Cases would be slower. Plotting on a log scale gives straight lines for exponential growth. The slope gives the doubling period. Here doubling periods are: 8 days (Testing); 2.8 days (Confirmed Cases); and (1.8 days) Deaths.
+It is interesting how fitting an exponential function to too few cases gives a spuriously high growth rate. I have no doubt this is known in the field. I imagine that the effect arises because with relatively few cases (i.e. <100) they are from different origins (outside the counting region) and not in any way timing linked to each other. It is only when cases are generated internally, within the counting district that fitting exponential growth rates makes any sense.
 
 ![doubling rates for COVID-19 UK totals](https://github.com/jpolton/COVID-19/blob/master/FIGURES/uk_totals.png)
 

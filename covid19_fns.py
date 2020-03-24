@@ -710,7 +710,7 @@ def double_rate_uk_totals():
 
     plot_logy_with_fit( days, totals['Tests'], label='COVID-19 Tests', col='b', ndays=18)
     plot_logy_with_fit( days, totals['ConfirmedCases'], label='Confirmed Cases', col='g', ndays=18)
-    plot_logy_with_fit( days, totals['Deaths'], label='Deaths', col='r', ndays=13)
+    plot_logy_with_fit( days, totals['Deaths'], label='Deaths', col='r', ndays=7)
     plt.xlim([datetime.datetime(2020,3,1), days[totals.index[-1]] ])
     plt.ylabel('Count')
     plt.xlabel('Date')

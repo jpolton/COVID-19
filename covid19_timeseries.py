@@ -73,6 +73,10 @@ if __name__ == '__main__':
     #  The COVID-19 source data has labels of the form 'dd/mm'
     #days = ['07', '08', '09', '10', '11', '12', '13', '14','15', '16']
 
+    ## Plot doubling rate of UK deaths, confirmed cases and number of tests
+    c19.double_rate_uk_totals()
+
+
     days = [ datetime.datetime(2020,3,7),
                 datetime.datetime(2020,3,8),
                 datetime.datetime(2020,3,9),
@@ -85,13 +89,13 @@ if __name__ == '__main__':
                 datetime.datetime(2020,3,16),
                 datetime.datetime(2020,3,17),
                 datetime.datetime(2020,3,18),
-                datetime.datetime(2020,3,19) ]
+                datetime.datetime(2020,3,19),
+                datetime.datetime(2020,3,20),
+                datetime.datetime(2020,3,21),
+                datetime.datetime(2020,3,22) ]
 
     geodf = c19.load_geodataframe(days)
 
 
     ## Plot the growth rate of conformed cases for reporting areas
     c19.extract_timeseries(geodf,days)
-
-    ## Plot doubling rate of UK deaths, confirmed cases and number of tests
-    c19.double_rate_uk_totals()
