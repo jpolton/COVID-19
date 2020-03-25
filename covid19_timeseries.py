@@ -92,7 +92,9 @@ if __name__ == '__main__':
                 datetime.datetime(2020,3,19),
                 datetime.datetime(2020,3,20),
                 datetime.datetime(2020,3,21),
-                datetime.datetime(2020,3,22) ]
+                datetime.datetime(2020,3,22),
+                datetime.datetime(2020,3,23),
+                datetime.datetime(2020,3,24) ]
 
     geodf = c19.load_geodataframe(days)
 

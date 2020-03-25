@@ -87,15 +87,20 @@ if __name__ == '__main__':
                 datetime.datetime(2020,3,17),
                 datetime.datetime(2020,3,18),
                 datetime.datetime(2020,3,19),
-                datetime.datetime(2020,3,20) ]
+                datetime.datetime(2020,3,20),
+                datetime.datetime(2020,3,21),
+                datetime.datetime(2020,3,22),
+                datetime.datetime(2020,3,23),
+                datetime.datetime(2020,3,24) ]
 
     geodf = c19.load_geodataframe(days)
 
 
     # # Make regional plots for each day and each region
     #plot_frames_to_file(geodf,regions,days) # All regions and all days
-    c19.plot_frames_to_file(geodf,[region_Eng],days) # A single region and all day
-    #c19.plot_frames_to_file(geodf,[region_Lon],days) # A single region and all day
+    #c19.plot_frames_to_file(geodf,[region_Eng],days) # A single region and all day
+    c19.plot_frames_to_file(geodf,[region_Lon],days) # A single region and all day
+    c19.plot_frames_to_file(geodf,[region_NW],days) # A single region and all day
     #c19.plot_frames_to_file(geodf,regions,[days[-1]]) # All regions, last day
     #plot_frames_to_file(geodf,[region_Lon],[days[-1]]) # All regions, last day
 

@@ -567,7 +567,7 @@ def plot_frames_to_file(geodf, regions, days):
         ofile = 'COVID-19_'+region['name']+'.gif'
 
         maxval = find_max_in_region(geodf,region,days) # Find the max value to construct the colorscale
-        print('Max val %d'%maxval)
+        print('Max val:',maxval)
 
         for date_time in  days:
             daystr =  date_time.strftime("%d")
