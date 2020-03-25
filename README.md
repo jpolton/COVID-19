@@ -3,7 +3,7 @@
 The motivation was to learn how to do geospatial data handling and plotting in Python,
 here [geopandas](https://geopandas.org). COVID-19 confirmed cases by region seemed like a suitable dataset to learn on. But perhaps to many the image outputs are of more interest than the methods used...
 
-## Doubling rates of UK tests, confirmed cases and deaths (updated 24 March'20)
+## Doubling rates of UK tests, confirmed cases and deaths (updated 25 March'20)
 (Previously, 4 days ago, when I fitted a curve to the data much of the data was for counts less than 100. This gives a spuriously high growth rate. Now I can now fit a curve to the portion of data that exceeds 100. This produces a much more credible doubling rate of 3 days, which matches the growth rate of confirmed cases.)
 Plotting on a log scale gives straight lines for exponential growth. The slope gives the doubling period. Here doubling periods are: 7.7 days (Testing); 3.1 days (Confirmed Cases); and (3.0 days) Deaths.
 
@@ -12,7 +12,7 @@ It is interesting how fitting an exponential function to too few cases gives a s
 ![doubling rates for COVID-19 UK totals](https://github.com/jpolton/COVID-19/blob/master/FIGURES/uk_totals.png)
 
 
-## Doubling rates of confirmed cases in March (updated 19 March'20)
+## Doubling rates of confirmed cases in March (updated 25 March'20)
 
 Pragmatic criteria for testing result in under reporting for actual cases. Nevertheless it is interesting to look at the growth rate of confirmed cases. Plotting the total number of confirmed cases on a logarithmic count scale, against day, will give a straight line if the data are doubling at a steady rate. The steeper the line the faster the rate. Here I plot the data for the reporting districts in England with the largest number cases (hence least noisy data):
 
@@ -21,7 +21,7 @@ Pragmatic criteria for testing result in under reporting for actual cases. Never
 In black 3 lines are drawn to show the expected slopes for data that doubles every 2, 3 or 5 days.
 
 
-## Summary animations: Daily confirmed cases March (updated 20 March'20)
+## Summary animations: Daily confirmed cases March (updated 25 March'20)
 
 ![Daily confirmed cases 7th-20th March](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_England.gif)
 
