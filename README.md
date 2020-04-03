@@ -3,6 +3,12 @@
 The motivation was to learn how to do geospatial data handling and plotting in Python,
 here [geopandas](https://geopandas.org). COVID-19 confirmed cases by region seemed like a suitable dataset to learn on. But perhaps to many the image outputs are of more interest than the methods used...
 
+## Confirmed cases for the UK (updated 3 Apr'20)
+
+Plotting the confirmed cases for England, Wales and Scotland. Collated and recorded by [tom white](https://github.com/tomwhite/covid-19-uk-data/). Here the colour scale changes with the day to show how the 'hot spots' evolve from isolated regions into "something for everyone". The coding advance here was to switch to class instances for each region and to recover the England and Wales regional geometries via ONS API requests (NI and Scotland geometries come from static files). Code need some tidying [test.py](https://github.com/jpolton/COVID-19/blob/master/test.py)
+
+![Daily confirmed cases 7th March - 3rd Apr](https://github.com/jpolton/COVID-19/blob/master/FIGURES/COVID-19_UK.gif)
+
 ## Doubling rates of UK tests, confirmed cases and deaths (updated 25 March'20)
 (Previously, 4 days ago, when I fitted a curve to the data much of the data was for counts less than 100. This gives a spuriously high growth rate. Now I can now fit a curve to the portion of data that exceeds 100. This produces a much more credible doubling rate of 3 days, which matches the growth rate of confirmed cases.)
 Plotting on a log scale gives straight lines for exponential growth. The slope gives the doubling period. Here doubling periods are: 7.7 days (Testing); 3.1 days (Confirmed Cases); and (3.0 days) Deaths.
