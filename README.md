@@ -3,6 +3,12 @@
 The motivation was to learn how to do geospatial data handling and plotting in Python,
 here [geopandas](https://geopandas.org). COVID-19 confirmed cases by region seemed like a suitable dataset to learn on. But perhaps to many the image outputs are of more interest than the methods used...
 
+## What will Good News look like? (updated 6 Apr'20)
+
+Anticipating some good news in the data in the coming week(s) I started to wonder how would it be possible to detect it. The key might be spotting a slowing in the growth rates of cases or deaths. Spotting trends in reported cases would be ideal, since they are precursor to trends in death rates. However we anticipate the number of daily tests to vastly increase and I don't know how that will effect change the biasing of that data. So I conclude death rates are fairly robust a measure to look at.
+
+Here reported daily death data are shown on linear and log scales. New reported deaths against total reported deaths for the UK. Simple exponential growth would give straight lines + scatter. The linear axes show is large recent downturn in reported cases. However plotted this on a log scale perhaps suggests that this recent downturn is just scatter about the trend? This scatter also appears to vary with the day of week reported. Can there be a weekend effect in reported deaths? Covid19 data compiled by @Emma_L_Doughty.
+
 ## Confirmed cases for the UK (updated 3 Apr'20)
 
 Plotting the confirmed cases for England, Wales and Scotland. Collated and recorded by [tom white](https://github.com/tomwhite/covid-19-uk-data/). Here the colour scale changes with the day to show how the 'hot spots' evolve from isolated regions into "something for everyone". The coding advance here was to switch to class instances for each region and to recover the England and Wales regional geometries via ONS API requests (NI and Scotland geometries come from static files). Code need some tidying [test.py](https://github.com/jpolton/COVID-19/blob/master/test.py)
