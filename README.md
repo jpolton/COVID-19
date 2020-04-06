@@ -7,7 +7,9 @@ here [geopandas](https://geopandas.org). COVID-19 confirmed cases by region seem
 
 Anticipating some good news in the data in the coming week(s) I started to wonder how would it be possible to detect it. The key might be spotting a slowing in the growth rates of cases or deaths. Spotting trends in reported cases would be ideal, since they are precursor to trends in death rates. However we anticipate the number of daily tests to vastly increase and I don't know how that will effect change the biasing of that data. So I conclude death rates are fairly robust a measure to look at.
 
-Here reported daily death data are shown on linear and log scales. New reported deaths against total reported deaths for the UK. Simple exponential growth would give straight lines + scatter. The linear axes show is large recent downturn in reported cases. However plotted this on a log scale perhaps suggests that this recent downturn is just scatter about the trend? This scatter also appears to vary with the day of week reported. Can there be a weekend effect in reported deaths? Covid19 data compiled by @Emma_L_Doughty.
+Here reported daily death data are shown on linear and log scales. New reported deaths against total reported deaths for the UK. Simple exponential growth would give straight lines + scatter. The linear axes show is large recent downturn in reported cases. However plotted this on a log scale perhaps suggests that this recent downturn is just scatter about the trend? This scatter also appears to vary with the day of week reported. Can there be a weekend effect in reported deaths? Covid19 data compiled by  [@Emma_L_Doughty](https://github.com/emmadoughty/Daily_COVID-19)
+
+![New daily deaths vs total deaths - 6rd Apr](https://github.com/jpolton/COVID-19/blob/master/FIGURES/covid19_morbitity_trends.png)
 
 ## Confirmed cases for the UK (updated 3 Apr'20)
 
