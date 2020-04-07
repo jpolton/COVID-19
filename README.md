@@ -3,7 +3,7 @@
 The motivation was to learn how to do geospatial data handling and plotting in Python,
 here [geopandas](https://geopandas.org). COVID-19 confirmed cases by region seemed like a suitable dataset to learn on. But perhaps to many the image outputs are of more interest than the methods used...
 
-## What will Good News look like? (updated 6 Apr'20)
+## What will Good News look like? (updated 7 Apr'20)
 
 Anticipating some good news in the data in the coming week(s) I started to wonder how would it be possible to detect it. The key might be spotting a slowing in the growth rates of cases or deaths. Spotting trends in reported cases would be ideal, since they are precursor to trends in death rates. However we anticipate the number of daily tests to vastly increase and I don't know how that will effect change the biasing of that data. So I conclude death rates are fairly robust a measure to look at.
 
